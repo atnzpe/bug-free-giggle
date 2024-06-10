@@ -1,7 +1,7 @@
 import bcrypt
 import sqlite3
 
-
+from database import criar_conexao, nome_banco_de_dados
 
 
 
@@ -25,6 +25,8 @@ class Oficina:
         self.clientes = []
         self.carros = []
         self.pecas = []
+        
+        
 
     def criar_usuario(self, nome, senha):
         """ "
@@ -76,6 +78,7 @@ class Oficina:
             bool: True se o cadastro for realizado com sucesso, False caso contrário.
         """
         try:
+            conexao_db = criar_conexao(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
                 "INSERT INTO clientes (nome, telefone, endereco, email) VALUES (?, ?, ?, ?)",
@@ -96,6 +99,7 @@ class Oficina:
         Returns:
             Cliente: O objeto Cliente se encontrado, None caso contrário.
         """
+        conexao_db = criar_conexao(nome_banco_de_dados)
         cursor = conexao_db.cursor()
         cursor.execute("SELECT * FROM clientes WHERE nome=?", (nome,))
         cliente_data = cursor.fetchone()
@@ -116,6 +120,7 @@ class Oficina:
             bool: True se a atualização for realizada com sucesso, False caso contrário.
         """
         try:
+            conexao_db = criar_conexao(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
                 "UPDATE clientes SET telefone=?, email=? WHERE nome=?",
@@ -142,6 +147,7 @@ class Oficina:
             bool: True se o cadastro for realizado com sucesso, False caso contrário.
         """
         try:
+            conexao_db = criar_conexao(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
                 "INSERT INTO carros (modelo, ano, cor, placa, cliente_id) VALUES (?, ?, ?, ?, ?)",
@@ -162,6 +168,7 @@ class Oficina:
         Returns:
             list: Uma lista de objetos Cliente que correspondem à pesquisa.
         """
+        conexao_db = criar_conexao(nome_banco_de_dados)
         cursor = conexao_db.cursor()
         cursor.execute(
             """

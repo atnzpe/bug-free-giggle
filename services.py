@@ -107,6 +107,11 @@ class OficinaApp:
         # Atualiza a view para refletir as mudanças
         self.view.update()
 
+    #==================================
+    #MOSTRA ALERTAS / FECHAR MODAL 
+    #==================================
+
+
     def mostrar_alerta(self, mensagem):
         # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
         # e uma mensagem especificada pela variável "mensagem". A caixa de diálogo contém um único botão rotulado
@@ -157,6 +162,10 @@ class OficinaApp:
         self.page.dialog = self.dlg_login
         self.dlg_login.open = True
         self.page.update()
+
+    #==================================
+    #LOGIN / CADASTRO USUÁRIO 
+    #==================================
 
     # Funçõa para fazer no login
     def fazer_login(self, e):
@@ -218,7 +227,58 @@ class OficinaApp:
         except Exception as e:
             self.mostrar_alerta(f"Erro ao enviar solicitação de cadastro: {e}")
 
+    #==================================
+    #CADASTRO DE CLIENTES
+    #==================================
 
+    #ABRE O MODAL PARA CADASTRO DE CLIENTES
+    def abrir_modal_cadastrar_cliente(self, e):
+        self.cadastrar_cliente(e)
+
+    #Coleta dados do cliente e tenta cadastrá-lo.
+    def cadastrar_cliente(self, e):
+        """Coleta dados do cliente e tenta cadastrá-lo."""
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Cadastrar Cliente"),
+            content=ft.Column(
+                [
+                    ft.TextField(label="Nome", ref=ft.Ref[str]()),
+                    ft.TextField(label="Telefone", ref=ft.Ref[str]()),
+                    ft.TextField(label="Endereço", ref=ft.Ref[str]()),
+                    ft.TextField(label="Email", ref=ft.Ref[str]()),
+                ]
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=self.fechar_modal),
+                ft.ElevatedButton("Salvar", on_click=self.salvar_cliente),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self.page.dialog = dlg
+        dlg.open = True
+        self.page.update()
+        
+    #Coleta dados do cliente e tenta cadastrá-lo.
+    def salvar_cliente(self, e):
+        """Envia a solicitação de cadastro de cliente para a thread do banco de dados."""
+        dlg = self.page.dialog
+        nome = dlg.content.controls[0].value
+        telefone = dlg.content.controls[1].value
+        endereco = dlg.content.controls[2].value
+        email = dlg.content.controls[3].value
+
+        try:
+            fila_db.put(("cadastrar_cliente", (nome, telefone, endereco, email)))
+            self.mostrar_alerta("Processando cadastro de cliente. Aguarde...")
+            self.fechar_modal(e)
+        except Exception as e:
+            self.mostrar_alerta(f"Erro ao processar cadastro de cliente: {e}")
+
+        self.page.update()
+    
+    
 # Processa as operações do banco de dados em uma thread separada.
 # Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
 def processar_fila_db(page):
@@ -309,7 +369,8 @@ def processar_fila_db(page):
                                 }
                             )
 
-                elif operacao == "cadastrar_cliente":  # Nova operação
+                elif operacao == "cadastrar_cliente":
+                    # Nova operação
                     nome, telefone, endereco, email = dados
                     cursor = conexao_db.cursor()
 
@@ -416,8 +477,8 @@ def processar_fila_db(page):
                     }
                 )
 
-            except Exception as e:
-                print(f"Erro ao processar operação da fila: {e}")
+    except Exception as e:
+        print(f"Erro ao processar operação da fila: {e}")
 
     finally:
         if conexao_db:
