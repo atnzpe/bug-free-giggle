@@ -7,8 +7,6 @@ from services import OficinaApp, processar_fila_db
 
 
 
-
-
 def main(page: ft.Page):
     page.Title = "Oficina Guarulhos Teste cadastro carro"
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
