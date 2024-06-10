@@ -85,6 +85,11 @@ class OficinaApp:
             # Atualizar o Dropdown do modal de cadastro de carro
             self.clientes_dropdown = e["clientes"]
             self.evento_clientes_carregados.set()
+            
+        elif e["topic"] == "erro_db":
+            self.mostrar_alerta(e["mensagem_erro"])
+            
+            
 
         self.page.update()
 
@@ -225,70 +230,18 @@ def processar_fila_db(page):
     Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
     """
     
-    #conexao_db = criar_conexao(nome_banco_de_dados)
-
-    while True:
-        conexao_db = None
+    conexao_db = criar_conexao(nome_banco_de_dados)
+    try:
+        while True:       
             
-        try:
-            conexao_db = criar_conexao(nome_banco_de_dados)
-            operacao, dados = fila_db.get(block=True, timeout=1)
-            if operacao == "cadastrar_usuario":
-                nome, senha_hash = dados
-                cursor = conexao_db.cursor()
-                try:
-                                        
-                    cursor.execute(
-                        "INSERT INTO usuarios (nome, senha) VALUES (?, ?)",
-                        (nome, senha_hash),
-                    )
-                    conexao_db.commit()
-                    page.pubsub.send_all(
-                        {
-                            "topic": "usuario_cadastrado",
-                            "usuario": None,
-                            "mensagem_erro": "Usuário cadastrado com sucesso!",
-                        }
-                    )
-                except sqlite3.IntegrityError:
-                    page.pubsub.send_all(
-                        {
-                            "topic": "erro_cadastro_usuario",
-                            "mensagem_erro": "Nome de usuário já existe!",
-                        }
-                    )
-                except Exception as e:
-                    page.pubsub.send_all(
-                        {"topic": "erro_cadastro_usuario", "mensagem_erro": str(e)}
-                    )
-
-            elif operacao == "fazer_login":
-                nome, senha = dados
-                cursor = conexao_db.cursor()
-                cursor.execute("SELECT * FROM usuarios WHERE nome=?", (nome,))
-                usuario_data = cursor.fetchone()
-
-                if usuario_data:
-                    senha_armazenada = usuario_data[2]
-                    if bcrypt.checkpw(senha.encode(), senha_armazenada.encode()):
-                        usuario = Usuario(usuario_data[1], usuario_data[2])
-                        page.pubsub.send_all(
-                            {"topic": "login_bem_sucedido", "usuario": usuario}
-                        )
-                    else:
-                        page.pubsub.send_all(
-                            {
-                                "topic": "login_falhou",
-                                "mensagem_erro": "Credenciais inválidas!",
-                            }
-                        )
-
-                else:
-                    # Tentar cadastrar o usuário se não existir
+            try:
+            
+                operacao, dados = fila_db.get(block=True, timeout=1)
+                if operacao == "cadastrar_usuario":
+                    nome, senha_hash = dados
+                    cursor = conexao_db.cursor()
                     try:
-                        senha_hash = bcrypt.hashpw(
-                            senha.encode(), bcrypt.gensalt()
-                        ).decode()
+                                            
                         cursor.execute(
                             "INSERT INTO usuarios (nome, senha) VALUES (?, ?)",
                             (nome, senha_hash),
@@ -297,95 +250,178 @@ def processar_fila_db(page):
                         page.pubsub.send_all(
                             {
                                 "topic": "usuario_cadastrado",
-                                "mensagem_erro": f"Usuário '{nome}' cadastrado com sucesso! Faça o login.",
+                                "usuario": None,
+                                "mensagem_erro": "Usuário cadastrado com sucesso!",
+                            }
+                        )
+                    except sqlite3.IntegrityError:
+                        page.pubsub.send_all(
+                            {
+                                "topic": "erro_cadastro_usuario",
+                                "mensagem_erro": "Nome de usuário já existe!",
+                            }
+                        )
+                    except Exception as e:
+                        page.pubsub.send_all(
+                            {"topic": "erro_cadastro_usuario", "mensagem_erro": str(e)}
+                        )
+
+                elif operacao == "fazer_login":
+                    nome, senha = dados
+                    cursor = conexao_db.cursor()
+                    cursor.execute("SELECT * FROM usuarios WHERE nome=?", (nome,))
+                    usuario_data = cursor.fetchone()
+
+                    if usuario_data:
+                        senha_armazenada = usuario_data[2]
+                        if bcrypt.checkpw(senha.encode(), senha_armazenada.encode()):
+                            usuario = Usuario(usuario_data[1], usuario_data[2])
+                            page.pubsub.send_all(
+                                {"topic": "login_bem_sucedido", "usuario": usuario}
+                            )
+                        else:
+                            page.pubsub.send_all(
+                                {
+                                    "topic": "login_falhou",
+                                    "mensagem_erro": "Credenciais inválidas!",
+                                }
+                            )
+
+                    else:
+                        # Tentar cadastrar o usuário se não existir
+                        try:
+                            senha_hash = bcrypt.hashpw(
+                                senha.encode(), bcrypt.gensalt()
+                            ).decode()
+                            cursor.execute(
+                                "INSERT INTO usuarios (nome, senha) VALUES (?, ?)",
+                                (nome, senha_hash),
+                            )
+                            conexao_db.commit()
+                            page.pubsub.send_all(
+                                {
+                                    "topic": "usuario_cadastrado",
+                                    "mensagem_erro": f"Usuário '{nome}' cadastrado com sucesso! Faça o login.",
+                                }
+                            )
+                        except Exception as e:
+                            page.pubsub.send_all(
+                                {
+                                    "topic": "login_falhou",
+                                    "mensagem_erro": f"Erro ao cadastrar usuário: {e}",
+                                }
+                            )
+
+                elif operacao == "cadastrar_cliente":  # Nova operação
+                    nome, telefone, endereco, email = dados
+                    cursor = conexao_db.cursor()
+
+                    try:
+                        cursor.execute(
+                            "INSERT INTO clientes (nome, telefone, endereco, email) VALUES (?, ?, ?, ?)",
+                            (nome, telefone, endereco, email),
+                        )
+                        conexao_db.commit()
+                        page.pubsub.send_all(
+                            {
+                                "topic": "cliente_cadastrado",
+                                "mensagem_erro": "Cliente cadastrado com sucesso!",
+                            }
+                        )
+                    except sqlite3.IntegrityError:
+                        page.pubsub.send_all(
+                            {
+                                "topic": "erro_cadastro_cliente",
+                                "mensagem_erro": "Já existe um cliente com este nome.",
                             }
                         )
                     except Exception as e:
                         page.pubsub.send_all(
                             {
-                                "topic": "login_falhou",
-                                "mensagem_erro": f"Erro ao cadastrar usuário: {e}",
+                                "topic": "erro_cadastro_cliente",
+                                "mensagem_erro": f"Erro ao cadastrar cliente: {str(e)}",
                             }
                         )
 
-            elif operacao == "cadastrar_cliente":  # Nova operação
-                nome, telefone, endereco, email = dados
-                cursor = conexao_db.cursor()
+                elif operacao == "cadastrar_carro":
+                    modelo, ano, cor, placa, cliente_id = dados
+                    cursor = conexao_db.cursor()
 
-                try:
-                    cursor.execute(
-                        "INSERT INTO clientes (nome, telefone, endereco, email) VALUES (?, ?, ?, ?)",
-                        (nome, telefone, endereco, email),
-                    )
-                    conexao_db.commit()
-                    page.pubsub.send_all(
-                        {
-                            "topic": "cliente_cadastrado",
-                            "mensagem_erro": "Cliente cadastrado com sucesso!",
-                        }
-                    )
-                except sqlite3.IntegrityError:
-                    page.pubsub.send_all(
-                        {
-                            "topic": "erro_cadastro_cliente",
-                            "mensagem_erro": "Já existe um cliente com este nome.",
-                        }
-                    )
-                except Exception as e:
-                    page.pubsub.send_all(
-                        {
-                            "topic": "erro_cadastro_cliente",
-                            "mensagem_erro": f"Erro ao cadastrar cliente: {str(e)}",
-                        }
-                    )
+                    try:
+                        cursor.execute(
+                            "INSERT INTO carros (modelo, ano, cor, placa, cliente_id) VALUES (?, ?, ?, ?, ?)",
+                            (modelo, ano, cor, placa, cliente_id),
+                        )
+                        conexao_db.commit()
+                        page.pubsub.send_all(
+                            {
+                                "topic": "carro_cadastrado",
+                                "mensagem_erro": "Carro cadastrado com sucesso!",
+                            }
+                        )
+                    except sqlite3.IntegrityError:
+                        page.pubsub.send_all(
+                            {
+                                "topic": "erro_cadastro_carro",
+                                "mensagem_erro": "Já existe um carro com essa placa.",
+                            }
+                        )
+                    except Exception as e:
+                        page.pubsub.send_all(
+                            {
+                                "topic": "erro_cadastro_carro",
+                                "mensagem_erro": f"Erro ao cadastrar carro: {str(e)}",
+                            }
+                        )
 
-            elif operacao == "cadastrar_carro":
-                modelo, ano, cor, placa, cliente_id = dados
-                cursor = conexao_db.cursor()
-
-                try:
-                    cursor.execute(
-                        "INSERT INTO carros (modelo, ano, cor, placa, cliente_id) VALUES (?, ?, ?, ?, ?)",
-                        (modelo, ano, cor, placa, cliente_id),
-                    )
-                    conexao_db.commit()
+                elif operacao == "obter_clientes_dropdown":  #  nova operação
+                    cursor = conexao_db.cursor()
+                    cursor.execute("SELECT id, nome FROM clientes")
+                    clientes = cursor.fetchall()
+                    opcoes_dropdown = [
+                        ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                        for cliente in clientes
+                    ]
                     page.pubsub.send_all(
-                        {
-                            "topic": "carro_cadastrado",
-                            "mensagem_erro": "Carro cadastrado com sucesso!",
-                        }
-                    )
-                except sqlite3.IntegrityError:
-                    page.pubsub.send_all(
-                        {
-                            "topic": "erro_cadastro_carro",
-                            "mensagem_erro": "Já existe um carro com essa placa.",
-                        }
-                    )
-                except Exception as e:
-                    page.pubsub.send_all(
-                        {
-                            "topic": "erro_cadastro_carro",
-                            "mensagem_erro": f"Erro ao cadastrar carro: {str(e)}",
-                        }
+                        {"topic": "clientes_dropdown", "clientes": opcoes_dropdown}
                     )
 
-            elif operacao == "obter_clientes_dropdown":  #  nova operação
-                cursor = conexao_db.cursor()
-                cursor.execute("SELECT id, nome FROM clientes")
-                clientes = cursor.fetchall()
-                opcoes_dropdown = [
-                    ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
-                    for cliente in clientes
-                ]
+            except queue.Empty:
+                pass
+            
+            except sqlite3.IntegrityError as e:
                 page.pubsub.send_all(
-                    {"topic": "clientes_dropdown", "clientes": opcoes_dropdown}
+                    {
+                        "topic": "erro_db", 
+                        "mensagem_erro": f"Erro de integridade no banco de dados: {e}",
+                        "dados": dados,
+                        "operacao": operacao
+                    }
                 )
-
-        except queue.Empty:
-            pass
-        except Exception as e:
-            print(f"Erro ao processar operação da fila: {e}")
-        # finally:
-        # if conexao_db:
-        # conexao_db.close()
+                
+            except sqlite3.Error as e: 
+                page.pubsub.send_all(
+                    {
+                        "topic": "erro_db", 
+                        "mensagem_erro": f"Erro no banco de dados: {e}", 
+                        "dados": dados,
+                        "operacao": operacao
+                    }
+                )
+                
+            except Exception as e:
+                page.pubsub.send_all(
+                    {
+                        "topic": "erro_db", 
+                        "mensagem_erro": f"Erro inesperado: {e}", 
+                        "dados": dados,
+                        "operacao": operacao
+                    }
+                )
+            
+            except Exception as e:
+                print(f"Erro ao processar operação da fila: {e}")
+            
+    finally:
+        if conexao_db:
+            conexao_db.close()
