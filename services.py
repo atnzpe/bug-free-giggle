@@ -9,11 +9,7 @@ import threading
 
 from utils import mostrar_alerta, fechar_modal
 from models import Oficina, Peca, Cliente, Usuario, Carro
-from database import (criar_conexao,
-    criar_usuario_admin,    
-    nome_banco_de_dados,
-    fila_db
-)
+from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
 
 
 class OficinaApp:
@@ -26,11 +22,15 @@ class OficinaApp:
         self.clientes_dropdown = []
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
-        
 
     def build(self):
         self.botoes = {
-            "login": ft.ElevatedButton("Efetue Login", on_click=self.abrir_modal_login)
+            "login": ft.ElevatedButton("Efetue Login", on_click=self.abrir_modal_login),
+            "cadastrar_cliente": ft.ElevatedButton(
+                "Cadastrar Cliente",
+                on_click=self.abrir_modal_cadastrar_cliente,
+                disabled=True,
+            ),
         }
 
         self.view = ft.Column(
@@ -44,7 +44,7 @@ class OficinaApp:
         self.page.add(self.view)
 
         return self.view
-    
+
     def _on_message(self, e):
         """
         Recebe mensagens da thread do banco de dados através do pubsub.
@@ -85,11 +85,9 @@ class OficinaApp:
             # Atualizar o Dropdown do modal de cadastro de carro
             self.clientes_dropdown = e["clientes"]
             self.evento_clientes_carregados.set()
-            
+
         elif e["topic"] == "erro_db":
             self.mostrar_alerta(e["mensagem_erro"])
-            
-            
 
         self.page.update()
 
@@ -110,11 +108,11 @@ class OficinaApp:
         self.view.update()
 
     def mostrar_alerta(self, mensagem):
-    # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
-    # e uma mensagem especificada pela variável "mensagem". A caixa de diálogo contém um único botão rotulado
-    # "OK" que, ao ser clicado, chamará o método "fechar_modal" para fechar a caixa de diálogo. O diálogo é
-    # definido como modal, o que significa que bloqueará a interação com o resto da página até que ela seja fechada.
-    # A caixa de diálogo é então exibida na página e a página é atualizada para refletir as alterações.
+        # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
+        # e uma mensagem especificada pela variável "mensagem". A caixa de diálogo contém um único botão rotulado
+        # "OK" que, ao ser clicado, chamará o método "fechar_modal" para fechar a caixa de diálogo. O diálogo é
+        # definido como modal, o que significa que bloqueará a interação com o resto da página até que ela seja fechada.
+        # A caixa de diálogo é então exibida na página e a página é atualizada para refletir as alterações.
         """Exibe um alerta em um Modal (AlertDialog)."""
         dlg = ft.AlertDialog(
             modal=True,
@@ -130,14 +128,13 @@ class OficinaApp:
         dlg.open = True
         self.page.update()
 
-    #"""Fecha qualquer modal aberto."""
+    # """Fecha qualquer modal aberto."""
     def fechar_modal(self, e):
-        
         """Fecha qualquer modal aberto."""
         self.page.dialog.open = False
         self.page.update()
 
-    #Abre o Modal de Login
+    # Abre o Modal de Login
     def abrir_modal_login(self, e):
         self.dlg_login = ft.AlertDialog(
             modal=True,
@@ -161,7 +158,7 @@ class OficinaApp:
         self.dlg_login.open = True
         self.page.update()
 
-    #Funçõa para fazer no login
+    # Funçõa para fazer no login
     def fazer_login(self, e):
         dlg = self.page.dialog
         nome = dlg.content.controls[0].value
@@ -173,7 +170,7 @@ class OficinaApp:
         except Exception as e:
             self.mostrar_alerta(f"Erro ao processar : {e}")
 
-    #Abre o modal para cadastro de novo usuário.
+    # Abre o modal para cadastro de novo usuário.
     def abrir_cadastro(self, e):
         """Abre o modal para cadastro de novo usuário."""
         self.dlg_cadastro = ft.AlertDialog(
@@ -222,26 +219,26 @@ class OficinaApp:
             self.mostrar_alerta(f"Erro ao enviar solicitação de cadastro: {e}")
 
 
-#Processa as operações do banco de dados em uma thread separada.
-#Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
+# Processa as operações do banco de dados em uma thread separada.
+# Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
 def processar_fila_db(page):
     """
     Processa as operações do banco de dados em uma thread separada.
     Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
     """
-    
+
     conexao_db = criar_conexao(nome_banco_de_dados)
     try:
-        while True:       
-            
+        while True:
+
             try:
-            
+
                 operacao, dados = fila_db.get(block=True, timeout=1)
                 if operacao == "cadastrar_usuario":
                     nome, senha_hash = dados
                     cursor = conexao_db.cursor()
                     try:
-                                            
+
                         cursor.execute(
                             "INSERT INTO usuarios (nome, senha) VALUES (?, ?)",
                             (nome, senha_hash),
@@ -388,40 +385,40 @@ def processar_fila_db(page):
 
             except queue.Empty:
                 pass
-            
+
             except sqlite3.IntegrityError as e:
                 page.pubsub.send_all(
                     {
-                        "topic": "erro_db", 
+                        "topic": "erro_db",
                         "mensagem_erro": f"Erro de integridade no banco de dados: {e}",
                         "dados": dados,
-                        "operacao": operacao
+                        "operacao": operacao,
                     }
                 )
-                
-            except sqlite3.Error as e: 
+
+            except sqlite3.Error as e:
                 page.pubsub.send_all(
                     {
-                        "topic": "erro_db", 
-                        "mensagem_erro": f"Erro no banco de dados: {e}", 
+                        "topic": "erro_db",
+                        "mensagem_erro": f"Erro no banco de dados: {e}",
                         "dados": dados,
-                        "operacao": operacao
+                        "operacao": operacao,
                     }
                 )
-                
+
             except Exception as e:
                 page.pubsub.send_all(
                     {
-                        "topic": "erro_db", 
-                        "mensagem_erro": f"Erro inesperado: {e}", 
+                        "topic": "erro_db",
+                        "mensagem_erro": f"Erro inesperado: {e}",
                         "dados": dados,
-                        "operacao": operacao
+                        "operacao": operacao,
                     }
                 )
-            
+
             except Exception as e:
                 print(f"Erro ao processar operação da fila: {e}")
-            
+
     finally:
         if conexao_db:
             conexao_db.close()
