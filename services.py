@@ -4,13 +4,11 @@ import sqlite3
 import bcrypt
 import queue
 
-import threading
 
 
 from utils import mostrar_alerta, fechar_modal
 from models import Oficina, Peca, Cliente, Usuario, Carro
 from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
-
 
 
 class OficinaApp:
@@ -24,20 +22,24 @@ class OficinaApp:
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
 
+    #Botões da Tela Inicial
     def build(self):
         self.botoes = {
-            
-            #Botão de Login
+            # Botão de Login
             "login": ft.ElevatedButton("Efetue Login", on_click=self.abrir_modal_login),
-            
-            #Botão Cadastrar Cliente
+            # Botão Cadastrar Cliente
             "cadastrar_cliente": ft.ElevatedButton(
                 "Cadastrar Cliente",
                 on_click=self.abrir_modal_cadastrar_cliente,
                 disabled=True,
             ),
+            "cadastrar_carro": ft.ElevatedButton(
+                "Cadastrar Carro",
+                on_click=self.abrir_modal_cadastro_carro,
+                disabled=True,
+            ),
             
-            #Sair do App
+            # Sair do App
             "sair": ft.ElevatedButton("Sair", on_click=self.sair_do_app),
         }
 
@@ -115,10 +117,9 @@ class OficinaApp:
         # Atualiza a view para refletir as mudanças
         self.view.update()
 
-    #==================================
-    #MOSTRA ALERTAS / FECHAR MODAL 
-    #==================================
-
+    # ==================================
+    # MOSTRA ALERTAS / FECHAR MODAL
+    # ==================================
 
     def mostrar_alerta(self, mensagem):
         # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
@@ -171,9 +172,9 @@ class OficinaApp:
         self.dlg_login.open = True
         self.page.update()
 
-    #==================================
-    #LOGIN / CADASTRO USUÁRIO 
-    #==================================
+    # ==================================
+    # LOGIN / CADASTRO USUÁRIO
+    # ==================================
 
     # Funçõa para fazer no login
     def fazer_login(self, e):
@@ -235,15 +236,15 @@ class OficinaApp:
         except Exception as e:
             self.mostrar_alerta(f"Erro ao enviar solicitação de cadastro: {e}")
 
-    #==================================
-    #CADASTRO DE CLIENTES
-    #==================================
+    # ==================================
+    # CADASTRO DE CLIENTES
+    # ==================================
 
-    #ABRE O MODAL PARA CADASTRO DE CLIENTES
+    # ABRE O MODAL PARA CADASTRO DE CLIENTES
     def abrir_modal_cadastrar_cliente(self, e):
         self.cadastrar_cliente(e)
 
-    #Coleta dados do cliente e tenta cadastrá-lo.
+    # Coleta dados do cliente e tenta cadastrá-lo.
     def cadastrar_cliente(self, e):
         """Coleta dados do cliente e tenta cadastrá-lo."""
 
@@ -267,9 +268,8 @@ class OficinaApp:
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
-        
-    
-    #Função para Salvar o Cadastro do Cliente
+
+    # Função para Salvar o Cadastro do Cliente
     def salvar_cliente(self, e):
         """Envia a solicitação de cadastro de cliente para a thread do banco de dados."""
         dlg = self.page.dialog
@@ -287,21 +287,54 @@ class OficinaApp:
 
         self.page.update()
 
-    #==================================
-    #CADASTRO DE CARROS
-    #==================================
+    # ==================================
+    # CADASTRO DE CARROS
+    # ==================================
 
-    #aBRE O mODAL PARA REALIZAR O CADASTRO DE CARROS
+    # aBRE O mODAL PARA REALIZAR O CADASTRO DE CARROS
     def abrir_modal_cadastro_carro(e):
         carregar_clientes_no_dropdown()
-        page.dialog = modal_cadastro_carro
+        self.page.dialog = modal_cadastro_carro
         modal_cadastro_carro.open = True
+
+        self.page.update()
+        
+    def fechar_modal_cadastro_carro(e):
+        modelo_input.value = ""
+        cor_input.value = ""
+        ano_input.value = ""
+        placa_input.value = ""
+        clientes_dropdown.value = None
+        modal_cadastro_carro.open = False
         page.update()
     
-    #Função para Encerrar o Aplicativo usado no VBotão SAIR
+    # Modal de cadastro de carro
+    modal_cadastro_carro = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Cadastrar Novo Carro"),
+        content=ft.Column(
+            [
+                modelo_input,
+                cor_input,
+                ano_input,
+                placa_input,
+                clientes_dropdown,
+                ft.Row(
+                    [
+                        ft.ElevatedButton("Cadastrar", on_click=cadastrar_carro),
+                        ft.OutlinedButton("Cancelar", on_click=fechar_modal_cadastro_carro),
+                    ],
+                    alignment=ft.MainAxisAlignment.END,
+                ),
+            ]
+        ),
+    )
+
+    # Função para Encerrar o Aplicativo usado no VBotão SAIR
     def sair_do_app(self, e):
         self.page.window_destroy()
-    
+
+
 # Processa as operações do banco de dados em uma thread separada.
 # Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
 def processar_fila_db(page):
