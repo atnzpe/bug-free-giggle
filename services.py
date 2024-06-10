@@ -12,6 +12,7 @@ from models import Oficina, Peca, Cliente, Usuario, Carro
 from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
 
 
+
 class OficinaApp:
 
     def __init__(self, page: ft.Page):
@@ -25,12 +26,19 @@ class OficinaApp:
 
     def build(self):
         self.botoes = {
+            
+            #Botão de Login
             "login": ft.ElevatedButton("Efetue Login", on_click=self.abrir_modal_login),
+            
+            #Botão Cadastrar Cliente
             "cadastrar_cliente": ft.ElevatedButton(
                 "Cadastrar Cliente",
                 on_click=self.abrir_modal_cadastrar_cliente,
                 disabled=True,
             ),
+            
+            #Sair do App
+            "sair": ft.ElevatedButton("Sair", on_click=self.sair_do_app),
         }
 
         self.view = ft.Column(
@@ -260,7 +268,8 @@ class OficinaApp:
         dlg.open = True
         self.page.update()
         
-    #Coleta dados do cliente e tenta cadastrá-lo.
+    
+    #Função para Salvar o Cadastro do Cliente
     def salvar_cliente(self, e):
         """Envia a solicitação de cadastro de cliente para a thread do banco de dados."""
         dlg = self.page.dialog
@@ -277,7 +286,21 @@ class OficinaApp:
             self.mostrar_alerta(f"Erro ao processar cadastro de cliente: {e}")
 
         self.page.update()
+
+    #==================================
+    #CADASTRO DE CARROS
+    #==================================
+
+    #aBRE O mODAL PARA REALIZAR O CADASTRO DE CARROS
+    def abrir_modal_cadastro_carro(e):
+        carregar_clientes_no_dropdown()
+        page.dialog = modal_cadastro_carro
+        modal_cadastro_carro.open = True
+        page.update()
     
+    #Função para Encerrar o Aplicativo usado no VBotão SAIR
+    def sair_do_app(self, e):
+        self.page.window_destroy()
     
 # Processa as operações do banco de dados em uma thread separada.
 # Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
