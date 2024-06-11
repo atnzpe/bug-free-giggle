@@ -76,9 +76,14 @@ class OficinaApp:
                 on_click=self.abrir_modal_cadastrar_cliente,
                 disabled=True,
             ),
-            "cadastrar_carro": ft.ElevatedButton(
+            "cadastrar_carro": ft.ElevatedButton(# Botão Cadastrar Carro
                 "Cadastrar Carro",
                 on_click=self.abrir_modal_cadastro_carro,
+                disabled=True,
+            ),
+            "cadastrar_pecas": ft.ElevatedButton( # Botão Cadastrar Peças
+                "Cadastrar Peças",
+                on_click=self.abrir_modal_cadastrar_peca,
                 disabled=True,
             ),
             # Sair do App
@@ -587,6 +592,7 @@ def processar_fila_db(page):
                     page.pubsub.send_all(
                         {"topic": "clientes_dropdown", "clientes": opcoes_dropdown}
                     )
+
 
             except queue.Empty:
                 pass
