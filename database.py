@@ -5,7 +5,6 @@ import flet as ft
 import queue
 
 
-
 # Cria conexão com o Banco de Dados Sqlite3 e cria as tabelas
 def criar_conexao(banco_de_dados):
     """
@@ -195,6 +194,24 @@ def criar_tabelas(conexao):
         """
     )
     print("Tabela pecas criada com sucesso!")
+
+    # Cria a Tabela Ordem de Serviço
+    cursor = conexao.cursor()
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ordem_servico (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            carro_id INTEGER NOT NULL,
+            data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+            valor_total REAL NOT NULL,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+            FOREIGN KEY (carro_id) REFERENCES carros(id)
+        )
+        """
+    )
+    print("Tabela ordem_servico criada com sucesso!")
+
     criar_usuario_admin(conexao)
 
     # Verificar se o usuário "admin" já existe
