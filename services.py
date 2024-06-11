@@ -1,17 +1,42 @@
 import flet as ft
+from flet import dropdown
 import threading
 import sqlite3
 import bcrypt
 import queue
+from datetime import datetime
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 
-from models import Oficina, Peca, Cliente, Usuario, Carro
-from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
+from models import Oficina, Peca, Carro, Cliente, Usuario
+from database import (
+    criar_conexao,
+    criar_usuario_admin,
+    obter_carros_por_cliente,
+    criar_conexao,
+    obter_clientes,
+    obter_carros_por_cliente,
+    obter_pecas,
+    inserir_ordem_servico,
+    atualizar_estoque_peca,
+    nome_banco_de_dados,
+    fila_db,
+)
 
 
 class OficinaApp:
 
     def __init__(self, page: ft.Page):
+        super().__init__()
+        self.carro_dropdown_os = ft.Dropdown(width=300)
+        self.cliente_selecionado = None
+        self.carro_selecionado = None
+        self.pecas_selecionadas = []
+        self.carregar_dados()
+        self.build_ui()
         self.page = page
         self.oficina = Oficina()
         self.usuario_atual = None
@@ -21,6 +46,17 @@ class OficinaApp:
         page.pubsub.subscribe(self._on_message)
         conexao_db = criar_conexao(nome_banco_de_dados)
         conexao = conexao_db
+        self.conexao = criar_conexao(nome_banco_de_dados)
+        self.carro_dropdown_os = ft.Dropdown(width=300)
+        self.page = page
+        
+        self.cliente_dropdown_os = ft.Dropdown(
+            width=300,
+            on_change=self.carregar_clientes_no_dropdown_os,  # Referencie o método
+        )
+        self.carregar_clientes_no_dropdown_os(None)  # Inicializa o dropdown de clientes
+
+        self.carro_dropdown_os = ft.Dropdown(width=300)
 
         # Carrega o Dropdown ao Iniciar
         self.carregar_clientes_no_dropdown()
@@ -71,7 +107,6 @@ class OficinaApp:
         self.botoes = {
             # Botão de Login
             "login": ft.ElevatedButton("Efetue Login", on_click=self.abrir_modal_login),
-           
             # Botão Cadastrar Cliente
             "cadastrar_cliente": ft.ElevatedButton(
                 "Cadastrar Cliente",
@@ -79,27 +114,21 @@ class OficinaApp:
                 disabled=True,
             ),
             # Botão Cadastrar Carro
-            "cadastrar_carro": ft.ElevatedButton(  
+            "cadastrar_carro": ft.ElevatedButton(
                 "Cadastrar Carro",
                 on_click=self.abrir_modal_cadastro_carro,
                 disabled=True,
             ),
             # Botão Cadastrar Peças
-            "cadastrar_pecas": ft.ElevatedButton(  
+            "cadastrar_pecas": ft.ElevatedButton(
                 "Cadastrar / Atualizar Peças",
                 on_click=self.abrir_modal_cadastrar_peca,
                 disabled=True,
             ),
             # Visualiza o Saldo de Estoque
-            "saldo_estoque": ft.ElevatedButton(  
+            "saldo_estoque": ft.ElevatedButton(
                 "Visualiza o Saldo de Estoque",
                 on_click=self.abrir_modal_saldo_estoque,
-                disabled=True,
-            ),
-            # Criar Ordem de Serviço
-            "criar_ordem_servico": ft.ElevatedButton(
-                "Criar Ordem de Serviço",
-                on_click=self.abrir_modal_ordem_servico,
                 disabled=True,
             ),
             # Sair do App
@@ -110,11 +139,22 @@ class OficinaApp:
             [
                 ft.Text("Bem-vindo à oficina Guarulhos!", size=30),  # Titulo
                 *self.botoes.values(),
+                ft.Row(
+                    [
+                        ft.Text("Cliente:", width=100),
+                        self.cliente_dropdown,
+                        ft.Text("Carro:", width=100),
+                        self.carro_dropdown,
+                    ]
+                ),
+                ft.ElevatedButton(
+                    "Criar Ordem de Serviço", on_click=self.abrir_modal_os
+                ),
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
 
-        self.page.add(self.view)
+        self.page.add(self.view, ref=self.carro_dropdown_os)
 
         return self.view
 
@@ -665,57 +705,294 @@ class OficinaApp:
 
         return movimentacoes
 
-    #======================================
+    # ======================================
     # ORDEM DE SERVIÇO
-    #======================================
-    
-    def abrir_modal_ordem_servico(self, e):
-        self.carregar_clientes_no_dropdown_os()
+    # ======================================
+
+    def carregar_carros_no_dropdown_os(self, e):
+        """Carrega a lista de carros no dropdown,
+        baseado no cliente selecionado.
+        """
+        cliente_id = None
+        if self.cliente_dropdown_os.current.value:
+            cliente_id = int(
+                self.cliente_dropdown_os.current.value.split(" (ID: ")[1][:-1]
+            )
+
+        try:
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                if cliente_id:
+                    carros = self.obter_carros_por_cliente(conexao, cliente_id)
+                    self.carro_dropdown_os.current.options = [
+                        ft.dropdown.Option(f"{carro[1]} (ID: {carro[0]})")
+                        for carro in carros
+                    ]
+                else:
+                    self.carro_dropdown_os.current.options = []
+                self.page.update()
+        except Exception as e:
+            print(f"Erro ao carregar carros no dropdown: {e}")
+
+    def carregar_clientes_no_dropdown_os(self, e):
+        """Carrega a lista de clientes no dropdown."""
+        try:
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                clientes = obter_clientes(conexao)  # Consulte o banco de dados
+                self.cliente_dropdown_os.options = [
+                    ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                    for cliente in clientes
+                ]
+                self.page.update()
+        except Exception as e:
+            print(f"Erro ao carregar clientes no dropdown: {e}")
+
+    def carregar_dados(self):
+        with criar_conexao(nome_banco_de_dados) as conexao:
+            self.clientes = obter_clientes(conexao)
+            self.carros = []  # Inicialmente vazio
+            self.pecas = obter_pecas(conexao)
+
+    def build_ui(self):
+        self.cliente_dropdown = ft.Dropdown(
+            width=300,
+            options=[
+                ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                for cliente in self.clientes
+            ],
+            on_change=self.cliente_alterado,
+        )
+        self.carro_dropdown = ft.Dropdown(width=300)
+        self.peca_dropdown = ft.Dropdown(
+            width=200,
+            options=[ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas],
+        )
+        self.preco_unitario_field = ft.TextField(
+            label="Preço Unitário", width=100, value="0.00"
+        )
+        self.quantidade_field = ft.TextField(label="Quantidade", width=100, value="1")
+        self.adicionar_peca_button = ft.ElevatedButton(
+            "Adicionar Peça", on_click=self.adicionar_peca
+        )
+        self.pecas_list_view = ft.ListView(expand=True, height=200)
+        self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
+
+        self.modal_ordem_servico = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Criar Ordem de Serviço"),
+            content=ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Text("Cliente:", width=100),
+                            self.cliente_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Carro:", width=100),
+                            self.carro_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Peça:", width=100),
+                            self.peca_dropdown,
+                            self.preco_unitario_field,
+                            self.quantidade_field,
+                            self.adicionar_peca_button,
+                        ],
+                    ),
+                    self.pecas_list_view,
+                    self.valor_total_text,
+                ]
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
+                ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self.page.add(
+            ft.ElevatedButton("Criar Ordem de Serviço", on_click=self.abrir_modal_os)
+        )
+
+    def cliente_alterado(self, e):
+        self.cliente_selecionado = self.cliente_dropdown.value
+        self.carro_dropdown.options = []
+        if self.cliente_selecionado:
+            cliente_id = int(self.cliente_selecionado.split(" (ID: ")[1][:-1])
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                self.carros = obter_carros_por_cliente(conexao, cliente_id)
+            self.carro_dropdown.options = [
+                ft.dropdown.Option(f"{carro[1]}") for carro in self.carros
+            ]
+        self.carro_dropdown.value = None
+        self.page.update()
+
+    def adicionar_peca(self, e):
+        peca_nome = self.peca_dropdown.value
+        preco_unitario = float(self.preco_unitario_field.value)
+        quantidade = float(self.quantidade_field.value)
+        valor_total = preco_unitario * quantidade
+
+        self.pecas_selecionadas.append(
+            {
+                "nome": peca_nome,
+                "preco_unitario": preco_unitario,
+                "quantidade": quantidade,
+                "valor_total": valor_total,
+            }
+        )
+        self.atualizar_lista_pecas()
+        self.calcular_valor_total()
+
+    def atualizar_lista_pecas(self):
+        self.pecas_list_view.controls = []
+        for peca in self.pecas_selecionadas:
+            self.pecas_list_view.controls.append(
+                ft.Text(
+                    f"{peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
+                )
+            )
+        self.page.update()
+
+    def calcular_valor_total(self):
+        valor_total = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
+        self.valor_total_text.value = f"Valor Total: R$ {valor_total:.2f}"
+        self.page.update()
+
+    def abrir_modal_os(self, e):
+        """Abre o modal para criar uma nova ordem de serviço."""
+        self.limpar_campos_os()
         self.page.dialog = self.modal_ordem_servico
         self.modal_ordem_servico.open = True
         self.page.update()
-        
-    def fechar_modal_ordem_servico(self, e):
-        # ... (Lógica para limpar os campos do modal, se necessário)
+
+    def fechar_modal_os(self, e):
+        """Fecha o modal de ordem de serviço."""
         self.modal_ordem_servico.open = False
         self.page.update()
-        
-    # Modal de Ordem de Serviço
-    self.modal_ordem_servico = ft.AlertDialog(
-        modal=True,
-        title=ft.Text("Criar Ordem de Serviço"),
-        content=ft.Column(
-            [
-                ft.Dropdown(
-                    width=300,
-                    label="Cliente",
-                    options=[],  # Preencheremos com clientes do banco de dados
-                    ref=self.cliente_dropdown_os,
-                ),
-                ft.Dropdown(
-                    width=300,
-                    label="Carro",
-                    options=[],  # Preencheremos com carros do banco de dados
-                    ref=self.carro_dropdown_os,
-                ),
-                # ... (Adicionaremos os campos para peças posteriormente) 
-                ft.Row(
-                    [
-                        ft.ElevatedButton(
-                            "Salvar Ordem de Serviço", on_click=self.salvar_ordem_servico
-                        ),
-                        ft.OutlinedButton(
-                            "Cancelar", on_click=self.fechar_modal_ordem_servico
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.END,
-                ),
-            ]
-        ),
-    )
 
-    self.cliente_dropdown_os = ft.Ref[ft.Dropdown]()
-    self.carro_dropdown_os = ft.Ref[ft.Dropdown]()
+    def limpar_campos_os(self):
+        """Limpa os campos do modal de ordem de serviço."""
+        self.cliente_dropdown.value = None
+        self.carro_dropdown.options = []  # Limpa as opções de carros
+        self.carro_dropdown.value = None
+        self.peca_dropdown.value = None
+        self.preco_unitario_field.value = "0.00"
+        self.quantidade_field.value = "1"
+        self.pecas_selecionadas = []
+        self.pecas_list_view.controls = []
+        self.valor_total_text.value = "Valor Total: R$ 0.00"
+        self.page.update()
+
+    def criar_ordem_servico(self, e):
+        if not all(
+            [
+                self.cliente_dropdown.value,
+                self.carro_dropdown.value,
+                self.pecas_selecionadas,
+            ]
+        ):
+            ft.snack_bar = ft.SnackBar(
+                ft.Text("Preencha todos os campos!"),
+            )
+            self.page.show_snack_bar(ft.snack_bar)
+            return
+
+        try:
+            cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
+            carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1][:-1])
+
+            # Obter os IDs das peças a partir dos nomes
+            peca_ids = []
+            for peca_selecionada in self.pecas_selecionadas:
+                for peca in self.pecas:
+                    if peca_selecionada["nome"] == peca[1]:
+                        peca_ids.append(peca[0])
+                        break
+
+            # Inserir a ordem de serviço no banco de dados
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                ordem_servico_id = inserir_ordem_servico(
+                    conexao, cliente_id, carro_id, peca_ids
+                )
+
+                if ordem_servico_id is not None:
+                    # Atualizar o estoque das peças
+                    for i, peca_id in enumerate(peca_ids):
+                        quantidade_utilizada = self.pecas_selecionadas[i]["quantidade"]
+                        atualizar_estoque_peca(conexao, peca_id, -quantidade_utilizada)
+
+            self.gerar_pdf_os(ordem_servico_id)
+            self.fechar_modal_os(e)
+            self.limpar_campos_os()
+            ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
+            self.page.show_snack_bar(ft.snack_bar)
+        except Exception as e:
+            print(f"Erro ao criar ordem de serviço: {e}")
+            ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
+            self.page.show_snack_bar(ft.snack_bar)
+
+    def gerar_pdf_os(self, ordem_servico_id):
+        try:
+            cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+            placa_carro = self.carro_dropdown.value
+            data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nome_arquivo = f"{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
+            caminho_pasta = "Histórico"
+            os.makedirs(caminho_pasta, exist_ok=True)
+            caminho_arquivo = os.path.join(caminho_pasta, nome_arquivo)
+
+            doc = SimpleDocTemplate(
+                caminho_arquivo,
+                pagesize=letter,
+                title=f"Ordem de Serviço - Nº {ordem_servico_id}",
+            )
+            conteudo = []
+            estilos = getSampleStyleSheet()
+            conteudo.append(
+                Paragraph(
+                    f"Ordem de Serviço - Nº {ordem_servico_id}",
+                    estilos["Heading1"],
+                )
+            )
+            conteudo.append(Spacer(1, 12))
+            conteudo.append(Paragraph(f"Cliente: {cliente_nome}", estilos["Normal"]))
+            conteudo.append(
+                Paragraph(f"Placa do Carro: {placa_carro}", estilos["Normal"])
+            )
+            conteudo.append(
+                Paragraph(
+                    f"Data de Criação: {data_hora_criacao}",
+                    estilos["Normal"],
+                )
+            )
+            conteudo.append(Spacer(1, 12))
+            for peca in self.pecas_selecionadas:
+                conteudo.append(
+                    Paragraph(
+                        f"- {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}",
+                        estilos["Normal"],
+                    )
+                )
+            conteudo.append(Spacer(1, 12))
+            conteudo.append(
+                Paragraph(
+                    f"Valor Total: R$ {sum(peca['valor_total'] for peca in self.pecas_selecionadas):.2f}",
+                    estilos["Heading3"],
+                )
+            )
+
+            doc.build(conteudo)
+
+            print(f"PDF da OS gerado com sucesso em: {caminho_arquivo}")
+        except Exception as e:
+            print(f"Erro ao gerar PDF da OS: {e}")
+
+    # =============================
+    # SAIR DO APLICATIVO
+    # ============================
 
     # Função para Encerrar o Aplicativo usado no VBotão SAIR
     def sair_do_app(self, e):

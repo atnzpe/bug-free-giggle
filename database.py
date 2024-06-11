@@ -211,6 +211,20 @@ def criar_tabelas(conexao):
         """
     )
     print("Tabela ordem_servico criada com sucesso!")
+    
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS PecasOrdemServico (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ordem_servico_id INTEGER,
+            peca_id INTEGER,
+            quantidade INTEGER NOT NULL,
+            FOREIGN KEY (ordem_servico_id) REFERENCES OrdensDeServico (id),
+            FOREIGN KEY (peca_id) REFERENCES Pecas (id)
+        )
+        """
+    )
+    print("Tabelas criadas com sucesso!")
 
     criar_usuario_admin(conexao)
 
@@ -220,6 +234,100 @@ def criar_tabelas(conexao):
 
     # ================================
 
+
+def inserir_dados_iniciais(conexao):
+    cursor = conexao.cursor()
+
+    # Inserir clientes
+    cursor.execute("INSERT INTO clientes (nome) VALUES ('João Silva')")
+    cursor.execute("INSERT INTO clientes (nome) VALUES ('Maria Oliveira')")
+
+    # Inserir carros
+    cursor.execute(
+        "INSERT INTO carros (cliente_id, placa) VALUES (1, 'ABC-1234')"
+    )
+    cursor.execute(
+        "INSERT INTO carros (cliente_id, placa) VALUES (2, 'DEF-5678')"
+    )
+
+    # Inserir peças
+    cursor.execute(
+        "INSERT INTO pecas (nome, preco_unitario, quantidade_em_estoque) VALUES ('Teste 1r', 50.00, 100)"
+    )
+    cursor.execute(
+        "INSERT INTO pecas (nome, preco_unitario, quantidade_em_estoque) VALUES ('Teste 2', 20.00, 50)"
+    )
+    cursor.execute(
+        "INSERT INTO pecas (nome, preco_unitario, quantidade_em_estoque) VALUES ('Teste3', 80.00, 30)"
+    )
+
+    conexao.commit()
+    print("Dados iniciais inseridos com sucesso!")
+    
+
+def obter_clientes(conexao):
+    cursor = conexao.cursor()
+    cursor.execute("SELECT * FROM clientes")
+    return cursor.fetchall()
+
+
+def obter_carros_por_cliente(conexao, cliente_id):
+    cursor = conexao.cursor()
+    cursor.execute(
+        "SELECT * FROM carros WHERE cliente_id = ?", (cliente_id,)
+    )
+    return cursor.fetchall()
+
+
+def obter_pecas(conexao):
+    cursor = conexao.cursor()
+    cursor.execute("SELECT * FROM pecas")
+    return cursor.fetchall()
+
+
+def inserir_ordem_servico(conexao, cliente_id, carro_id, peca_ids):
+    cursor = conexao.cursor()
+    cursor.execute(
+        """
+        INSERT INTO ordem_servico (cliente_id, carro_id)
+        VALUES (?, ?)
+        """,
+        (cliente_id, carro_id),
+    )
+    ordem_servico_id = cursor.lastrowid
+    # Inserir peças na tabela PecasOrdemServico
+    for i, peca_id in enumerate(peca_ids):
+        quantidade = int(input(f"Quantidade da peça {peca_id}: "))
+        cursor.execute(
+            """
+            INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
+            VALUES (?, ?, ?)
+            """,
+            (ordem_servico_id, peca_id, quantidade),
+        )
+    conexao.commit()
+    return ordem_servico_id
+
+
+def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
+    cursor = conexao.cursor()
+    cursor.execute(
+        """
+        UPDATE pecas
+        SET quantidade_em_estoque = quantidade_em_estoque + ?
+        WHERE id = ?
+        """,
+        (quantidade_utilizada, peca_id),
+    )
+    conexao.commit()
+
+
+if __name__ == "__main__":
+    conexao = criar_conexao("oficina.db")
+    if conexao is not None:
+        criar_tabelas(conexao)
+        inserir_dados_iniciais(conexao)
+        conexao.close()
 
 # BANCO DE DADAS E FILA
 nome_banco_de_dados = "./data/oficina_guarulhos.db"

@@ -200,7 +200,21 @@ class Oficina:
             return True
         return False
 
+    #Obtém a lista de clientes do banco de dados.
+    def obter_clientes(self,conexao):
+        """Obtém a lista de clientes do banco de dados."""
+        conexao = criar_conexao(nome_banco_de_dados)
+        cursor = conexao.cursor()
+        cursor.execute("SELECT id, nome FROM clientes")
+        return cursor.fetchall()
     
+    #Obtém a lista de carros de um cliente específico.
+    def obter_carros_por_cliente(self,conexao, cliente_id):
+        """Obtém a lista de carros de um cliente específico."""
+        conexao = criar_conexao(nome_banco_de_dados)
+        cursor = conexao.cursor()
+        cursor.execute("SELECT id, placa FROM carros WHERE cliente_id = ?", (cliente_id,))
+        return cursor.fetchall()
     
 class Cliente:
     """

@@ -12,6 +12,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     app = OficinaApp(page)
+    page.add(app)
     page.add(app.build())
 
     # Inscreva-se para receber mensagens da thread do banco de dados
