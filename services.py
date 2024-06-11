@@ -5,8 +5,8 @@ import bcrypt
 import queue
 
 
-from utils import mostrar_alerta, fechar_modal
-from models import Oficina, Peca, Cliente, Usuario, Carro
+
+from models import  Oficina, Peca, Cliente, Usuario, Carro
 from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
 
 
@@ -81,8 +81,8 @@ class OficinaApp:
                 on_click=self.abrir_modal_cadastro_carro,
                 disabled=True,
             ),
-            "cadastrar_pecas": ft.ElevatedButton( # Botão Cadastrar Peças
-                "Cadastrar Peças",
+            "cadastrar_pecas": ft.ElevatedButton( # Botão Cadastrar Cliente
+                "Cadastrar / Atualizar Peças",
                 on_click=self.abrir_modal_cadastrar_peca,
                 disabled=True,
             ),
@@ -106,6 +106,9 @@ class OficinaApp:
     #     FUNÇÕES GERAIS
     #     ==================================
 
+        
+    #Recebe mensagens da thread do banco de dados através do pubsub.
+    # As mensagens devem ser dicionários com a chave 'topic' para indicar o tipo de mensagem.       
     def _on_message(self, e):
         """
         Recebe mensagens da thread do banco de dados através do pubsub.
@@ -146,6 +149,16 @@ class OficinaApp:
             # Atualizar o Dropdown do modal de cadastro de carro
             self.clientes_dropdown = e["clientes"]
             self.evento_clientes_carregados.set()
+            
+        elif e["topic"] == "peca_cadastrada":
+            self.mostrar_alerta(e["mensagem_erro"])
+            
+        elif e["topic"] == "peca_atualizada":
+            self.mostrar_alerta(e["mensagem_erro"])
+            
+        elif e["topic"] == "erro_ao_salvar_peca":
+            self.mostrar_alerta(e["mensagem_erro"])
+        
 
         elif e["topic"] == "erro_db":
             self.mostrar_alerta(e["mensagem_erro"])
@@ -420,7 +433,149 @@ class OficinaApp:
         except Exception as e:
             print(f"Erro ao carregar clientes no dropdown: {e}")
 
-    
+    # -----------------------------------
+    # INICIO FUNÇÕES CADASTRAR PEÇAS
+    # ------------------------------------
+
+    # FUNÇÃO ABRIR MODAL CADASTRAR PEÇAS
+    def abrir_modal_cadastrar_peca(self, e):
+        """Abre o modal para cadastrar uma nova peça."""
+
+        # Define se é uma nova peça (padrão: True)
+        self.nova_peca = True
+
+        self.dlg_cadastrar_peca = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Cadastrar/Atualizar Peça"),
+            content=ft.Column(
+                [
+                    ft.TextField(label="Nome", ref=ft.Ref[str]()),
+                    ft.TextField(label="Referência", ref=ft.Ref[str]()),
+                    ft.TextField(label="Fabricante", ref=ft.Ref[str]()),
+                    ft.TextField(label="Descrição", ref=ft.Ref[str]()),
+                    ft.TextField(label="Preço de Compra", ref=ft.Ref[str]()),
+                    ft.TextField(label="Preço de Venda", ref=ft.Ref[str]()),
+                    ft.TextField(label="Quantidade em Estoque", ref=ft.Ref[str]()),
+                ]
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=self.fechar_modal),
+                ft.ElevatedButton("Salvar", on_click=self.salvar_peca),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        self.page.dialog = self.dlg_cadastrar_peca
+        self.dlg_cadastrar_peca.open = True
+
+        # Adiciona evento on_change para os campos de nome e referência
+        self.dlg_cadastrar_peca.content.controls[0].on_change = (
+            self.verificar_peca_existente
+        )
+        self.dlg_cadastrar_peca.content.controls[1].on_change = (
+            self.verificar_peca_existente
+        )
+
+        self.page.update()
+
+    def obter_peca_por_nome_e_referencia(self, nome, referencia):
+        """
+        Busca uma peça pelo nome e referência.
+
+        Args:
+            nome (str): O nome da peça.
+            referencia (str): A referência da peça.
+
+        Returns:
+            Peca: O objeto Peca se encontrado, None caso contrário.
+        """
+        with sqlite3.connect(nome_banco_de_dados) as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                "SELECT * FROM pecas WHERE nome=? AND referencia=?", (nome, referencia)
+                )
+            peca_data = cursor.fetchone()
+            if peca_data:
+                return Peca(*peca_data[1:])
+        return None
+
+    def verificar_peca_existente(self, e):
+        """Verifica se a peça já existe no banco de dados."""
+        dlg = self.dlg_cadastrar_peca  # Referência ao modal
+        nome = dlg.content.controls[0].value
+        referencia = dlg.content.controls[1].value
+
+        with sqlite3.connect(nome_banco_de_dados) as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                "SELECT * FROM pecas WHERE nome=? AND referencia=?", (nome, referencia)
+            )
+            peca_existente = cursor.fetchone()
+
+        # Habilita/desabilita campos com base na existência da peça
+        if self.nova_peca:  # Só verifica se for uma nova peça
+            peca_existente = self.obter_peca_por_nome_e_referencia(
+                nome, referencia
+            )
+            if peca_existente:
+                # Desabilita campos (exceto quantidade)
+                for i in range(2, 4):  # Índices dos campos a desabilitar
+                    dlg.content.controls[i].disabled = True
+                self.nova_peca = False  # Indica que não é mais uma nova peça
+            else:
+                # Habilita os campos se a peça não for encontrada
+                for i in range(2, 4):
+                    dlg.content.controls[i].disabled = False
+
+        self.page.update()
+
+    # FUNÇÃO DO SALVAR PEÇA
+
+    def salvar_peca(self, e):
+        """Salva uma nova peça ou atualiza a quantidade de uma existente."""
+        dlg = self.page.dialog
+        nome = dlg.content.controls[0].value
+        referencia = dlg.content.controls[1].value
+        fabricante = dlg.content.controls[2].value
+        descricao = dlg.content.controls[3].value
+        preco_compra = dlg.content.controls[4].value
+        preco_venda = dlg.content.controls[5].value
+        quantidade = dlg.content.controls[6].value
+
+        try:
+            preco_compra = float(preco_compra)
+            preco_venda = float(preco_venda)
+            quantidade = int(quantidade)
+        except ValueError:
+            self.mostrar_alerta("Os campos de preço e quantidade devem ser numéricos.")
+            return
+
+        try:
+            fila_db.put(
+                (
+                    "salvar_peca",
+                    (
+                        nome,
+                        referencia,
+                        fabricante,
+                        descricao,
+                        preco_compra,
+                        preco_venda,
+                        quantidade,
+                    ),
+                )
+            )
+            
+            self.mostrar_alerta("Processando informações da peça. Aguarde...")
+            self.fechar_modal(e)
+        except Exception as e:
+            self.mostrar_alerta(f"Erro ao processar informações da peça: {e}")
+
+        self.page.update()
+
+    # -----------------------------------
+    # FINAL FUNÇÕES CADASTRAR PEÇAS
+    # ------------------------------------
 
     # Função para Encerrar o Aplicativo usado no VBotão SAIR
     def sair_do_app(self, e):
@@ -592,6 +747,94 @@ def processar_fila_db(page):
                     page.pubsub.send_all(
                         {"topic": "clientes_dropdown", "clientes": opcoes_dropdown}
                     )
+
+                elif operacao == "salvar_peca":
+                    (
+                        nome,
+                        referencia,
+                        fabricante,
+                        descricao,
+                        preco_compra,
+                        preco_venda,
+                        quantidade,
+                    ) = dados
+                    cursor = conexao_db.cursor()
+                    try:
+                        cursor.execute(
+                            "SELECT id, quantidade_em_estoque FROM pecas WHERE nome = ? AND referencia = ?",
+                            (nome, referencia),
+                        )
+                        peca_existente = cursor.fetchone()
+
+                        if peca_existente:
+                            # Peça existente - atualizar quantidade
+                            peca_id, quantidade_atual = peca_existente
+                            nova_quantidade = quantidade_atual + quantidade
+                            cursor.execute(
+                                "UPDATE pecas SET quantidade_em_estoque = ? WHERE id = ?",
+                                (nova_quantidade, peca_id),
+                            )
+                            conexao_db.commit()
+                            
+                            # Registrar a movimentação de atualização da peça
+                            cursor.execute(
+                                """
+                                INSERT INTO movimentacao_pecas (peca_id, tipo_movimentacao, quantidade)
+                                VALUES (?, 'entrada', ?)
+                                """,
+                                (peca_id, quantidade),
+                            )
+                            conexao_db.commit()
+                            
+                            page.pubsub.send_all(
+                                {
+                                    "topic": "peca_atualizada",
+                                    "mensagem_erro": f"Quantidade da peça '{nome}' atualizada com sucesso!",
+                                }
+                            )
+                        else:
+                            # Nova peça - inserir na tabela
+                            cursor.execute(
+                                """
+                                INSERT INTO pecas (nome, referencia, fabricante, descricao, preco_compra, preco_venda, quantidade_em_estoque) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    nome,
+                                    referencia,
+                                    fabricante,
+                                    descricao,
+                                    preco_compra,
+                                    preco_venda,
+                                    quantidade,
+                                ),
+                            )
+                            peca_id = cursor.lastrowid  # Obter o ID da peça recém-inserida
+                            conexao_db.commit()
+
+                            # Registrar a entrada da peça na tabela de movimentação
+                            cursor.execute(
+                                """
+                                INSERT INTO movimentacao_pecas (peca_id, tipo_movimentacao, quantidade)
+                                VALUES (?, 'entrada', ?)
+                                """,
+                                (peca_id, quantidade),
+                            )
+                            conexao_db.commit()
+
+                            page.pubsub.send_all(
+                                {
+                                    "topic": "peca_cadastrada",
+                                    "mensagem_erro": f"Peça '{nome}' cadastrada com sucesso!",
+                                }
+                            )
+                    except Exception as e:
+                        page.pubsub.send_all(
+                            {
+                                "topic": "erro_ao_salvar_peca",
+                                "mensagem_erro": f"Erro ao salvar peça: {str(e)}",
+                            }
+                        )
 
 
             except queue.Empty:

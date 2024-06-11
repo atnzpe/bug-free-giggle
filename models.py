@@ -4,10 +4,6 @@ import sqlite3
 from database import criar_conexao, nome_banco_de_dados
 
 
-
-
-
-
 class Oficina:
     """
     Representa uma oficina mecânica,
@@ -25,8 +21,6 @@ class Oficina:
         self.clientes = []
         self.carros = []
         self.pecas = []
-        
-        
 
     def criar_usuario(self, nome, senha):
         """ "
@@ -190,6 +184,24 @@ class Oficina:
             clientes.append(cliente)
         return clientes
 
+    def autenticar(self, nome_de_usuario, senha_fornecida):
+        """
+        Verifica se as credenciais fornecidas são válidas.
+
+        Args:
+            nome_de_usuario (str): Nome de usuário para login.
+            senha_fornecida (str): Senha fornecida pelo usuário.
+
+        Returns:
+            bool: True se as credenciais forem válidas, False caso contrário.
+        """
+        usuario = self.obter_usuario_por_nome(nome_de_usuario)
+        if usuario and bcrypt.checkpw(senha_fornecida.encode(), usuario.senha):
+            return True
+        return False
+
+    
+    
 class Cliente:
     """
     Representa um Cliente com seus dados pessoais.
@@ -214,8 +226,6 @@ class Cliente:
         """Adiciona um carro à lista de carros do cliente."""
         if carro not in self.carros:
             self.carros.append(carro)
-
-    
 
 
 class Carro:
@@ -270,6 +280,9 @@ class Peca:
         self.preco_revenda = preco_revenda
         self.quantidade_em_estoque = quantidade_em_estoque
 
+    # Busca uma peça pelo nome e referência.
+
+
 
 class Usuario:
     """
@@ -314,3 +327,19 @@ class Usuario:
         salt = bcrypt.gensalt()
         hash_senha = bcrypt.hashpw(senha.encode(), salt)
         return hash_senha
+
+    def obter_usuario_por_nome_e_senha(self, nome, senha):
+        """
+        Busca um usuário pelo nome e senha.
+
+        Args:
+            nome (str): O Nome do usuário.
+            senha (str): A senha do usuario
+
+        Returns:
+            Usuario: O objeto Usuario se encontrado, None caso contrário.
+        """
+        for usuario in self.usuarios:
+            if usuario.nome == nome and bcrypt.checkpw(senha.encode(), usuario.senha):
+                return usuario
+        return None
