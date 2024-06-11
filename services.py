@@ -1,5 +1,17 @@
+from typing import Any
+
 import flet as ft
-from flet import dropdown
+from flet import (
+    Column,
+    Container,
+    ElevatedButton,
+    Page,
+    Row,
+    Text,
+    TextField,
+    UserControl,
+    colors,
+)
 import threading
 import sqlite3
 import bcrypt
@@ -31,13 +43,14 @@ class OficinaApp:
 
     def __init__(self, page: ft.Page):
         super().__init__()
+        self.page = page
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.cliente_selecionado = None
         self.carro_selecionado = None
         self.pecas_selecionadas = []
         self.carregar_dados()
         self.build_ui()
-        self.page = page
+
         self.oficina = Oficina()
         self.usuario_atual = None
         self.cliente_selecionado = None
@@ -48,8 +61,7 @@ class OficinaApp:
         conexao = conexao_db
         self.conexao = criar_conexao(nome_banco_de_dados)
         self.carro_dropdown_os = ft.Dropdown(width=300)
-        self.page = page
-        
+
         self.cliente_dropdown_os = ft.Dropdown(
             width=300,
             on_change=self.carregar_clientes_no_dropdown_os,  # Referencie o método
@@ -131,6 +143,12 @@ class OficinaApp:
                 on_click=self.abrir_modal_saldo_estoque,
                 disabled=True,
             ),
+            # Visualiza o Saldo de Estoque
+            "ordem_servico": ft.ElevatedButton(
+                "Criar Ordem de Serviço",
+                on_click=self.abrir_modal_os,
+                disabled=True,
+            ),
             # Sair do App
             "sair": ft.ElevatedButton("Sair", on_click=self.sair_do_app),
         }
@@ -139,22 +157,11 @@ class OficinaApp:
             [
                 ft.Text("Bem-vindo à oficina Guarulhos!", size=30),  # Titulo
                 *self.botoes.values(),
-                ft.Row(
-                    [
-                        ft.Text("Cliente:", width=100),
-                        self.cliente_dropdown,
-                        ft.Text("Carro:", width=100),
-                        self.carro_dropdown,
-                    ]
-                ),
-                ft.ElevatedButton(
-                    "Criar Ordem de Serviço", on_click=self.abrir_modal_os
-                ),
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
 
-        self.page.add(self.view, ref=self.carro_dropdown_os)
+        self.page.add(self.view)
 
         return self.view
 
@@ -811,9 +818,6 @@ class OficinaApp:
                 ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
-        )
-        self.page.add(
-            ft.ElevatedButton("Criar Ordem de Serviço", on_click=self.abrir_modal_os)
         )
 
     def cliente_alterado(self, e):
