@@ -5,8 +5,7 @@ import bcrypt
 import queue
 
 
-
-from models import  Oficina, Peca, Cliente, Usuario, Carro
+from models import Oficina, Peca, Cliente, Usuario, Carro
 from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
 
 
@@ -28,7 +27,7 @@ class OficinaApp:
 
         # Chama a Função de criar usuario Admin
         criar_usuario_admin(conexao)
-        
+
         # Modal de cadastro de carro
         self.modal_cadastro_carro = ft.AlertDialog(
             modal=True,
@@ -37,7 +36,9 @@ class OficinaApp:
                 [
                     ft.Row(
                         [
-                            ft.ElevatedButton("Cadastrar", on_click=self.cadastrar_carro),
+                            ft.ElevatedButton(
+                                "Cadastrar", on_click=self.cadastrar_carro
+                            ),
                             ft.OutlinedButton(
                                 "Cancelar", on_click=self.fechar_modal_cadastro_carro
                             ),
@@ -70,25 +71,35 @@ class OficinaApp:
         self.botoes = {
             # Botão de Login
             "login": ft.ElevatedButton("Efetue Login", on_click=self.abrir_modal_login),
+           
             # Botão Cadastrar Cliente
             "cadastrar_cliente": ft.ElevatedButton(
                 "Cadastrar Cliente",
                 on_click=self.abrir_modal_cadastrar_cliente,
                 disabled=True,
             ),
-            "cadastrar_carro": ft.ElevatedButton(# Botão Cadastrar Carro
+            # Botão Cadastrar Carro
+            "cadastrar_carro": ft.ElevatedButton(  
                 "Cadastrar Carro",
                 on_click=self.abrir_modal_cadastro_carro,
                 disabled=True,
             ),
-            "cadastrar_pecas": ft.ElevatedButton( # Botão Cadastrar Peças
+            # Botão Cadastrar Peças
+            "cadastrar_pecas": ft.ElevatedButton(  
                 "Cadastrar / Atualizar Peças",
                 on_click=self.abrir_modal_cadastrar_peca,
                 disabled=True,
             ),
-            "saldo_estoque": ft.ElevatedButton( # Botão Cadastrar Peças
+            # Visualiza o Saldo de Estoque
+            "saldo_estoque": ft.ElevatedButton(  
                 "Visualiza o Saldo de Estoque",
                 on_click=self.abrir_modal_saldo_estoque,
+                disabled=True,
+            ),
+            # Criar Ordem de Serviço
+            "criar_ordem_servico": ft.ElevatedButton(
+                "Criar Ordem de Serviço",
+                on_click=self.abrir_modal_ordem_servico,
                 disabled=True,
             ),
             # Sair do App
@@ -111,9 +122,8 @@ class OficinaApp:
     #     FUNÇÕES GERAIS
     #     ==================================
 
-        
-    #Recebe mensagens da thread do banco de dados através do pubsub.
-    # As mensagens devem ser dicionários com a chave 'topic' para indicar o tipo de mensagem.       
+    # Recebe mensagens da thread do banco de dados através do pubsub.
+    # As mensagens devem ser dicionários com a chave 'topic' para indicar o tipo de mensagem.
     def _on_message(self, e):
         """
         Recebe mensagens da thread do banco de dados através do pubsub.
@@ -154,16 +164,15 @@ class OficinaApp:
             # Atualizar o Dropdown do modal de cadastro de carro
             self.clientes_dropdown = e["clientes"]
             self.evento_clientes_carregados.set()
-            
+
         elif e["topic"] == "peca_cadastrada":
             self.mostrar_alerta(e["mensagem_erro"])
-            
+
         elif e["topic"] == "peca_atualizada":
             self.mostrar_alerta(e["mensagem_erro"])
-            
+
         elif e["topic"] == "erro_ao_salvar_peca":
             self.mostrar_alerta(e["mensagem_erro"])
-        
 
         elif e["topic"] == "erro_db":
             self.mostrar_alerta(e["mensagem_erro"])
@@ -427,12 +436,12 @@ class OficinaApp:
                 cursor = conexao.cursor()
                 cursor.execute("SELECT id, nome FROM clientes")
                 clientes = cursor.fetchall()
-                
+
                 self.clientes_dropdown.options = [
                     ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
                     for cliente in clientes
                 ]
-                
+
                 self.evento_clientes_carregados.set()
                 self.page.update()
         except Exception as e:
@@ -498,7 +507,7 @@ class OficinaApp:
             cursor = conexao.cursor()
             cursor.execute(
                 "SELECT * FROM pecas WHERE nome=? AND referencia=?", (nome, referencia)
-                )
+            )
             peca_data = cursor.fetchone()
             if peca_data:
                 return Peca(*peca_data[1:])
@@ -519,9 +528,7 @@ class OficinaApp:
 
         # Habilita/desabilita campos com base na existência da peça
         if self.nova_peca:  # Só verifica se for uma nova peça
-            peca_existente = self.obter_peca_por_nome_e_referencia(
-                nome, referencia
-            )
+            peca_existente = self.obter_peca_por_nome_e_referencia(nome, referencia)
             if peca_existente:
                 # Desabilita campos (exceto quantidade)
                 for i in range(2, 4):  # Índices dos campos a desabilitar
@@ -570,7 +577,7 @@ class OficinaApp:
                     ),
                 )
             )
-            
+
             self.mostrar_alerta("Processando informações da peça. Aguarde...")
             self.fechar_modal(e)
         except Exception as e:
@@ -582,8 +589,10 @@ class OficinaApp:
     # FINAL FUNÇÕES CADASTRAR PEÇAS
     # ------------------------------------
 
+    # =====================================
     # FUNÇÃO ABRIR MODOAL SALDO DE ESTOQUE
-    
+    # =====================================
+
     # Abre o modal para exibir o saldo de estoque.
     def abrir_modal_saldo_estoque(self, e):
         """Abre o modal para exibir o saldo de estoque."""
@@ -628,8 +637,8 @@ class OficinaApp:
         dlg.open = True
         self.page.update()
 
-    #Carrega os dados de movimentação de peças do banco de dados,
-    #calculando o saldo final para cada peça
+    # Carrega os dados de movimentação de peças do banco de dados,
+    # calculando o saldo final para cada peça
     def carregar_dados_saldo_estoque(self):
         """Carrega os dados de movimentação de peças do banco de dados,
         calculando o saldo final para cada peça.
@@ -655,6 +664,58 @@ class OficinaApp:
             movimentacoes = cursor.fetchall()
 
         return movimentacoes
+
+    #======================================
+    # ORDEM DE SERVIÇO
+    #======================================
+    
+    def abrir_modal_ordem_servico(self, e):
+        self.carregar_clientes_no_dropdown_os()
+        self.page.dialog = self.modal_ordem_servico
+        self.modal_ordem_servico.open = True
+        self.page.update()
+        
+    def fechar_modal_ordem_servico(self, e):
+        # ... (Lógica para limpar os campos do modal, se necessário)
+        self.modal_ordem_servico.open = False
+        self.page.update()
+        
+    # Modal de Ordem de Serviço
+    self.modal_ordem_servico = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Criar Ordem de Serviço"),
+        content=ft.Column(
+            [
+                ft.Dropdown(
+                    width=300,
+                    label="Cliente",
+                    options=[],  # Preencheremos com clientes do banco de dados
+                    ref=self.cliente_dropdown_os,
+                ),
+                ft.Dropdown(
+                    width=300,
+                    label="Carro",
+                    options=[],  # Preencheremos com carros do banco de dados
+                    ref=self.carro_dropdown_os,
+                ),
+                # ... (Adicionaremos os campos para peças posteriormente) 
+                ft.Row(
+                    [
+                        ft.ElevatedButton(
+                            "Salvar Ordem de Serviço", on_click=self.salvar_ordem_servico
+                        ),
+                        ft.OutlinedButton(
+                            "Cancelar", on_click=self.fechar_modal_ordem_servico
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.END,
+                ),
+            ]
+        ),
+    )
+
+    self.cliente_dropdown_os = ft.Ref[ft.Dropdown]()
+    self.carro_dropdown_os = ft.Ref[ft.Dropdown]()
 
     # Função para Encerrar o Aplicativo usado no VBotão SAIR
     def sair_do_app(self, e):
@@ -797,7 +858,6 @@ def processar_fila_db(page):
                             {
                                 "topic": "carro_cadastrado",
                                 "mensagem_erro": "Carro cadastrado com sucesso!",
-                                
                             }
                         )
                     except sqlite3.IntegrityError:
@@ -854,7 +914,7 @@ def processar_fila_db(page):
                                 (nova_quantidade, peca_id),
                             )
                             conexao_db.commit()
-                            
+
                             # Registrar a movimentação de atualização da peça
                             cursor.execute(
                                 """
@@ -864,7 +924,7 @@ def processar_fila_db(page):
                                 (peca_id, quantidade),
                             )
                             conexao_db.commit()
-                            
+
                             page.pubsub.send_all(
                                 {
                                     "topic": "peca_atualizada",
@@ -888,7 +948,9 @@ def processar_fila_db(page):
                                     quantidade,
                                 ),
                             )
-                            peca_id = cursor.lastrowid  # Obter o ID da peça recém-inserida
+                            peca_id = (
+                                cursor.lastrowid
+                            )  # Obter o ID da peça recém-inserida
                             conexao_db.commit()
 
                             # Registrar a entrada da peça na tabela de movimentação
@@ -914,7 +976,6 @@ def processar_fila_db(page):
                                 "mensagem_erro": f"Erro ao salvar peça: {str(e)}",
                             }
                         )
-
 
             except queue.Empty:
                 pass
