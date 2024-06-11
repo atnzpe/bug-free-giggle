@@ -81,9 +81,14 @@ class OficinaApp:
                 on_click=self.abrir_modal_cadastro_carro,
                 disabled=True,
             ),
-            "cadastrar_pecas": ft.ElevatedButton( # Botão Cadastrar Cliente
+            "cadastrar_pecas": ft.ElevatedButton( # Botão Cadastrar Peças
                 "Cadastrar / Atualizar Peças",
                 on_click=self.abrir_modal_cadastrar_peca,
+                disabled=True,
+            ),
+            "saldo_estoque": ft.ElevatedButton( # Botão Cadastrar Peças
+                "Visualiza o Saldo de Estoque",
+                on_click=self.abrir_modal_saldo_estoque,
                 disabled=True,
             ),
             # Sair do App
