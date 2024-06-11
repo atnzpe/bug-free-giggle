@@ -141,11 +141,11 @@ def criar_tabelas(conexao):
         data_movimentacao DATETIME DEFAULT CURRENT_TIMESTAMP,
         tipo_movimentacao TEXT NOT NULL CHECK (tipo_movimentacao IN ('entrada', 'saida')),
         quantidade INTEGER NOT NULL,
-        ordem_servico_id INTEGER,  
+        ordem_servico_id INTEGER, -- Agora é opcional (pode ser NULL) 
         FOREIGN KEY (peca_id) REFERENCES pecas(id),
-        FOREIGN KEY (ordem_servico_id) REFERENCES ordem_servico(id)
-        )
-        """
+        FOREIGN KEY (ordem_servico_id) REFERENCES ordem_servico(id) -- Esta restrição ainda é válida
+    )
+    """
     )
     print("movimentacao_pecas criada!")
 
