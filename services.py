@@ -582,6 +582,80 @@ class OficinaApp:
     # FINAL FUNÇÕES CADASTRAR PEÇAS
     # ------------------------------------
 
+    # FUNÇÃO ABRIR MODOAL SALDO DE ESTOQUE
+    
+    # Abre o modal para exibir o saldo de estoque.
+    def abrir_modal_saldo_estoque(self, e):
+        """Abre o modal para exibir o saldo de estoque."""
+
+        movimentacoes = self.carregar_dados_saldo_estoque()
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Saldo de Estoque"),
+            content=ft.Column(
+                [
+                    ft.DataTable(
+                        columns=[
+                            ft.DataColumn(ft.Text("Nome")),
+                            ft.DataColumn(ft.Text("Referência")),
+                            ft.DataColumn(ft.Text("Total de Entradas")),
+                            ft.DataColumn(ft.Text("Total de Saídas")),
+                            ft.DataColumn(ft.Text("Estoque Final")),
+                        ],
+                        rows=[
+                            ft.DataRow(
+                                cells=[
+                                    ft.DataCell(ft.Text(m[1])),  # Nome da peça
+                                    ft.DataCell(ft.Text(m[2])),  # Referência da peça
+                                    ft.DataCell(ft.Text(m[3])),  # Total de Entradas
+                                    ft.DataCell(ft.Text(m[4])),  # Total de Saídas
+                                    ft.DataCell(ft.Text(m[3] - m[4])),  # Estoque Final
+                                ]
+                            )
+                            for m in movimentacoes
+                        ],
+                    ),
+                ],
+                scroll=ft.ScrollMode.AUTO,
+            ),
+            actions=[
+                ft.TextButton("Fechar", on_click=self.fechar_modal),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self.page.dialog = dlg
+        dlg.open = True
+        self.page.update()
+
+    #Carrega os dados de movimentação de peças do banco de dados,
+    #calculando o saldo final para cada peça
+    def carregar_dados_saldo_estoque(self):
+        """Carrega os dados de movimentação de peças do banco de dados,
+        calculando o saldo final para cada peça.
+        """
+        with sqlite3.connect(nome_banco_de_dados) as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                """
+                SELECT 
+                    p.id,
+                    p.nome, 
+                    p.referencia,
+                    COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'entrada' THEN mp.quantidade ELSE 0 END), 0) AS total_entradas,
+                    COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'saida' THEN mp.quantidade ELSE 0 END), 0) AS total_saidas
+                FROM 
+                    pecas p
+                LEFT JOIN 
+                    movimentacao_pecas mp ON p.id = mp.peca_id
+                GROUP BY
+                    p.id, p.nome, p.referencia;
+                """
+            )
+            movimentacoes = cursor.fetchall()
+
+        return movimentacoes
+
     # Função para Encerrar o Aplicativo usado no VBotão SAIR
     def sair_do_app(self, e):
         self.page.window_destroy()
