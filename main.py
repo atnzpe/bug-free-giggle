@@ -9,6 +9,7 @@ from services import OficinaApp, processar_fila_db
 
 def main(page: ft.Page):
     page.Title = "Oficina Guarulhos Teste cadastro carro"
+    page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     app = OficinaApp(page)
     page.add(app.build())

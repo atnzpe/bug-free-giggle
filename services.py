@@ -5,7 +5,6 @@ import bcrypt
 import queue
 
 
-
 from utils import mostrar_alerta, fechar_modal
 from models import Oficina, Peca, Cliente, Usuario, Carro
 from database import criar_conexao, criar_usuario_admin, nome_banco_de_dados, fila_db
@@ -21,8 +20,52 @@ class OficinaApp:
         self.clientes_dropdown = []
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
+        conexao_db = criar_conexao(nome_banco_de_dados)
+        conexao = conexao_db
 
-    #Botões da Tela Inicial
+        # Carrega o Dropdown ao Iniciar
+        self.carregar_clientes_no_dropdown()
+
+        # Chama a Função de criar usuario Admin
+        criar_usuario_admin(conexao)
+        
+        # Modal de cadastro de carro
+        self.modal_cadastro_carro = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Cadastrar Novo Carro"),
+            content=ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.ElevatedButton("Cadastrar", on_click=self.cadastrar_carro),
+                            ft.OutlinedButton(
+                                "Cancelar", on_click=self.fechar_modal_cadastro_carro
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.END,
+                    ),
+                ]
+            ),
+        )
+
+        # Inputs do formulário
+        self.modelo_input = ft.TextField(label="Modelo")
+        self.cor_input = ft.TextField(label="Cor")
+        self.ano_input = ft.TextField(label="Ano")
+        self.placa_input = ft.TextField(label="Placa")
+        self.clientes_dropdown = ft.Dropdown(
+            width=300,
+            options=[],
+        )
+
+        # Adicione os inputs ao conteúdo do modal
+        self.modal_cadastro_carro.content.controls.insert(0, self.placa_input)
+        self.modal_cadastro_carro.content.controls.insert(0, self.ano_input)
+        self.modal_cadastro_carro.content.controls.insert(0, self.cor_input)
+        self.modal_cadastro_carro.content.controls.insert(0, self.modelo_input)
+        self.modal_cadastro_carro.content.controls.insert(0, self.clientes_dropdown)
+
+    # Botões da Tela Inicial
     def build(self):
         self.botoes = {
             # Botão de Login
@@ -38,7 +81,6 @@ class OficinaApp:
                 on_click=self.abrir_modal_cadastro_carro,
                 disabled=True,
             ),
-            
             # Sair do App
             "sair": ft.ElevatedButton("Sair", on_click=self.sair_do_app),
         }
@@ -54,6 +96,10 @@ class OficinaApp:
         self.page.add(self.view)
 
         return self.view
+
+    #     ==================================
+    #     FUNÇÕES GERAIS
+    #     ==================================
 
     def _on_message(self, e):
         """
@@ -148,6 +194,10 @@ class OficinaApp:
         self.page.dialog.open = False
         self.page.update()
 
+    # ==================================
+    # LOGIN / CADASTRO USUÁRIO
+    # ==================================
+
     # Abre o Modal de Login
     def abrir_modal_login(self, e):
         self.dlg_login = ft.AlertDialog(
@@ -171,10 +221,6 @@ class OficinaApp:
         self.page.dialog = self.dlg_login
         self.dlg_login.open = True
         self.page.update()
-
-    # ==================================
-    # LOGIN / CADASTRO USUÁRIO
-    # ==================================
 
     # Funçõa para fazer no login
     def fazer_login(self, e):
@@ -292,43 +338,84 @@ class OficinaApp:
     # ==================================
 
     # aBRE O mODAL PARA REALIZAR O CADASTRO DE CARROS
-    def abrir_modal_cadastro_carro(e):
-        carregar_clientes_no_dropdown()
-        self.page.dialog = modal_cadastro_carro
-        modal_cadastro_carro.open = True
-
+    def abrir_modal_cadastro_carro(self, e):
+        self.carregar_clientes_no_dropdown()
+        self.page.dialog = self.modal_cadastro_carro
+        self.modal_cadastro_carro.open = True
         self.page.update()
-        
-    def fechar_modal_cadastro_carro(e):
-        modelo_input.value = ""
-        cor_input.value = ""
-        ano_input.value = ""
-        placa_input.value = ""
-        clientes_dropdown.value = None
-        modal_cadastro_carro.open = False
-        page.update()
+
+    def fechar_modal_cadastro_carro(self, e):
+        self.modelo_input.value = ""
+        self.cor_input.value = ""
+        self.ano_input.value = ""
+        self.placa_input.value = ""
+        self.clientes_dropdown.value = None
+        self.modal_cadastro_carro.open = False
+        self.page.update()
+
+    def cadastrar_carro(self, e):
+        # Obter valores dos campos de entrada
+        modelo = self.modelo_input.value
+        cor = self.cor_input.value
+        ano = self.ano_input.value
+        placa = self.placa_input.value
+        proprietario_id = (
+            int(self.clientes_dropdown.value.split(" (ID: ")[1][:-1])
+            if self.clientes_dropdown.value
+            else None
+        )
+
+        # Validações
+        if not all([modelo, cor, ano, placa, proprietario_id]):
+            self.page.snack_bar = ft.SnackBar(
+                ft.Text("Por favor, preencha todos os campos!"),
+                bgcolor="red",
+            )
+            self.page.snack_bar.open = True
+            self.page.update()
+            return
+
+        try:
+            ano = int(ano)
+            if ano <= 1900 or ano > 2100:  # Validação simples do ano
+                raise ValueError("Ano inválido")
+        except ValueError:
+            self.page.snack_bar = ft.SnackBar(
+                ft.Text("Ano inválido. Digite um ano entre 1900 e 2100."),
+                bgcolor="red",
+            )
+            self.page.snack_bar.open = True
+            self.page.update()
+            return
+
+        # Envia os dados para a fila do banco de dados
+        fila_db.put(
+            (
+                "cadastrar_carro",
+                (modelo, cor, ano, placa, proprietario_id),
+            )
+        )
+
+        self.fechar_modal_cadastro_carro(e)  # Fecha o modal após enviar dados
+
+    def carregar_clientes_no_dropdown(self):
+        try:
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                cursor = conexao.cursor()
+                cursor.execute("SELECT id, nome FROM clientes")
+                clientes = cursor.fetchall()
+                
+                self.clientes_dropdown.options = [
+                    ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                    for cliente in clientes
+                ]
+                
+                self.evento_clientes_carregados.set()
+                self.page.update()
+        except Exception as e:
+            print(f"Erro ao carregar clientes no dropdown: {e}")
+
     
-    # Modal de cadastro de carro
-    modal_cadastro_carro = ft.AlertDialog(
-        modal=True,
-        title=ft.Text("Cadastrar Novo Carro"),
-        content=ft.Column(
-            [
-                modelo_input,
-                cor_input,
-                ano_input,
-                placa_input,
-                clientes_dropdown,
-                ft.Row(
-                    [
-                        ft.ElevatedButton("Cadastrar", on_click=cadastrar_carro),
-                        ft.OutlinedButton("Cancelar", on_click=fechar_modal_cadastro_carro),
-                    ],
-                    alignment=ft.MainAxisAlignment.END,
-                ),
-            ]
-        ),
-    )
 
     # Função para Encerrar o Aplicativo usado no VBotão SAIR
     def sair_do_app(self, e):
@@ -471,6 +558,7 @@ def processar_fila_db(page):
                             {
                                 "topic": "carro_cadastrado",
                                 "mensagem_erro": "Carro cadastrado com sucesso!",
+                                
                             }
                         )
                     except sqlite3.IntegrityError:
