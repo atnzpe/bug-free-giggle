@@ -945,6 +945,10 @@ class OficinaApp:
                         [
                             ft.Text("Quantidade:", width=100),
                             self.quantidade_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
                             self.adicionar_peca_button,
                         ],
                     ),
