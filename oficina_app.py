@@ -39,6 +39,7 @@ from database import (
     fila_db,
 )
 
+
 class OrdemServicoFormulario(UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
@@ -58,9 +59,7 @@ class OrdemServicoFormulario(UserControl):
         self.carro_dropdown = Dropdown(width=300)
         self.peca_dropdown = Dropdown(
             width=200,
-            options=[
-                dropdown.Option(f"{peca[1]}") for peca in self.oficina_app.pecas
-            ],
+            options=[dropdown.Option(f"{peca[1]}") for peca in self.oficina_app.pecas],
         )
         self.preco_unitario_field = TextField(
             label="Preço Unitário",
@@ -68,15 +67,12 @@ class OrdemServicoFormulario(UserControl):
             value="0.00",
             disabled=True,  # Desabilitado inicialmente
         )
-        self.quantidade_field = TextField(
-            label="Quantidade", width=100, value="1"
-        )
+        self.quantidade_field = TextField(label="Quantidade", width=100, value="1")
         self.adicionar_peca_button = ElevatedButton(
             "Adicionar Peça", on_click=self.adicionar_peca
         )
         self.pecas_list_view = ListView(expand=True, height=200)
         self.valor_total_text = Text("Valor Total: R$ 0.00")
-        
 
     def build(self):
         return Column(
@@ -110,9 +106,7 @@ class OrdemServicoFormulario(UserControl):
         self.carro_dropdown.options = []
         cliente_selecionado = self.cliente_dropdown.value
         if cliente_selecionado:
-            cliente_id = int(
-                cliente_selecionado.split(" (ID: ")[1][:-1]
-            )
+            cliente_id = int(cliente_selecionado.split(" (ID: ")[1][:-1])
             with criar_conexao(nome_banco_de_dados) as conexao:
                 carros = obter_carros_por_cliente(conexao, cliente_id)
                 self.carro_dropdown.options = [
@@ -128,11 +122,7 @@ class OrdemServicoFormulario(UserControl):
 
         # Obter o preço unitário da peça selecionada
         preco_unitario = next(
-            (
-                peca[5]
-                for peca in self.oficina_app.pecas
-                if peca[1] == peca_nome
-            ),
+            (peca[5] for peca in self.oficina_app.pecas if peca[1] == peca_nome),
             0.00,
         )  # Retorna 0.00 se a peça não for encontrada
 
@@ -160,12 +150,10 @@ class OrdemServicoFormulario(UserControl):
 
     def calcular_valor_total(self):
         valor_total = sum(
-            peca["valor_total"]
-            for peca in self.oficina_app.pecas_selecionadas
+            peca["valor_total"] for peca in self.oficina_app.pecas_selecionadas
         )
         self.valor_total_text.value = f"Valor Total: R$ {valor_total:.2f}"
         self.page.update()
-
 
 
 class OficinaApp:
@@ -191,7 +179,7 @@ class OficinaApp:
         self.conexao = criar_conexao(nome_banco_de_dados)
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.clientes_dropdown = ft.Dropdown(width=300)  # Crie um objeto Dropdown
-        
+
         self.cliente_dropdown_os = ft.Dropdown(
             width=300,
             on_change=self.carregar_clientes_no_dropdown_os,  # Referencie o método
@@ -953,12 +941,10 @@ class OficinaApp:
                             self.adicionar_peca_button,
                         ],
                     ),
-                    
                     self.pecas_list_view,
                     self.valor_total_text,
                 ]
             ),
-            
             actions=[
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
                 ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
@@ -1054,16 +1040,34 @@ class OficinaApp:
             cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
             carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1][:-1])
 
+            # Imprime o conteúdo das listas antes do loop
+            print("self.pecas_selecionadas:", self.pecas_selecionadas)
+            print("self.pecas:", self.pecas)
+
             # Preencher o dicionário pecas_quantidades
             for peca_selecionada in self.pecas_selecionadas:
-                # Simplificando a busca pelo ID da peça
-                peca_id = next(
-                    (peca[0] for peca in self.pecas if peca[1] == peca_selecionada["nome"]), None
-                )
+                print("peca_selecionada:", peca_selecionada)  # Novo print
+                peca_id = None
+                print("peca_id:", peca_id)  # Novo print
+                
+                # Utiliza enumerate para obter o índice e o valor de self.pecas
+                for indice, peca in enumerate(self.pecas):
+                    # CORREÇÃO: Compara com peca_selecionada['id'], não com o índice
+                    print(f"Comparando peca_selecionada['id'] ({peca_selecionada['id']}) com peca[{indice}][0] ({peca[0]})")
+                    print("Conteúdo de pecas_quantidades a cda inclusao:", pecas_quantidades)
+                    if peca[0] == peca_selecionada['id']:
+                        peca_id = peca[0]  # Define peca_id se a comparação for verdadeira
+                        pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
+                        break # Sai do loop interno após encontrar a peça
+                    
+                # Verifica se peca_id foi encontrado
                 if peca_id is not None:
-                    pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
+                    print("peca_id:", peca_id)
+                else:
+                    print(f"peça com ID {peca_selecionada['id']} não encontrada em self.pecas")
 
             print("Conteúdo de pecas_quantidades:", pecas_quantidades)
+                
 
             with criar_conexao(nome_banco_de_dados) as conexao:
                 # Verificar a quantidade em estoque ANTES de criar a OS
@@ -1088,9 +1092,7 @@ class OficinaApp:
             self.gerar_pdf_os(ordem_servico_id)
             self.fechar_modal_os(e)
             self.limpar_campos_os()
-            ft.snack_bar = ft.SnackBar(
-                ft.Text("Ordem de Serviço criada com sucesso!")
-            )
+            ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
             self.page.show_snack_bar(ft.snack_bar)
         except ValueError as e:
             # Exibe a mensagem de erro específica para erros de validação
@@ -1098,11 +1100,12 @@ class OficinaApp:
             ft.snack_bar = ft.SnackBar(ft.Text(str(e)))
             self.page.show_snack_bar(ft.snack_bar)
         except Exception as e:
-            print("Conteúdo de pecas_quantidades:", pecas_quantidades)
+            print("IMprime se deu erro o Conteúdo de pecas_quantidades:", pecas_quantidades)
+            # Imprime o conteúdo das listas antes do loop
+            print("self.pecas_selecionadas:", self.pecas_selecionadas)
+            print("self.pecas:", self.pecas)
             print(f"Aqui deu erro Erro ao criar ordem de serviço: {e}")
-            ft.snack_bar = ft.SnackBar(
-                ft.Text("Erro ao criar ordem de serviço!")
-            )
+            ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
             self.page.show_snack_bar(ft.snack_bar)
 
     def gerar_pdf_os(self, ordem_servico_id):
