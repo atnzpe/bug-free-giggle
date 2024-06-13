@@ -5,7 +5,7 @@ import flet as ft
 import queue
 
 # BANCO DE DADAS E FILA
-#nome_banco_de_dados = "./data/oficina_guarulhos.db"
+# nome_banco_de_dados = "./data/oficina_guarulhos.db"
 # nome_banco_de_dados = "./data/oficina_guarulhosTeste.db"
 # nome_banco_de_dados = "./data/oficina_guarulhosProdução.db"
 
@@ -13,6 +13,7 @@ import queue
 # Fila para operações do banco de dados
 fila_db = queue.Queue()
 # versao1.0
+
 
 # Cria conexão com o Banco de Dados Sqlite3 e cria as tabelas
 def criar_conexao(banco_de_dados):
@@ -37,11 +38,13 @@ def criar_conexao(banco_de_dados):
         print(f"Erro ao conectar ao banco de dados: {erro}")
     return conexao
 
-#conexao_db = criar_conexao(nome_banco_de_dados)
-#conexao = criar_conexao(nome_banco_de_dados)
+
+# conexao_db = criar_conexao(nome_banco_de_dados)
+# conexao = criar_conexao(nome_banco_de_dados)
 # Fila para operações do banco de dados
 fila_db = queue.Queue()
 # versao1.0
+
 
 # Executa uma consulta SQL na conexão fornecida
 def executar_sql(conexao, sql, parametros=None):
@@ -225,7 +228,7 @@ def criar_tabelas(conexao):
         """
     )
     print("Tabela ordem_servico criada com sucesso!")
-    
+
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS PecasOrdemServico (
@@ -257,12 +260,8 @@ def inserir_dados_iniciais(conexao):
     cursor.execute("INSERT INTO clientes (nome) VALUES ('Maria Oliveira')")
 
     # Inserir carros
-    cursor.execute(
-        "INSERT INTO carros (cliente_id, placa) VALUES (1, 'ABC-1234')"
-    )
-    cursor.execute(
-        "INSERT INTO carros (cliente_id, placa) VALUES (2, 'DEF-5678')"
-    )
+    cursor.execute("INSERT INTO carros (cliente_id, placa) VALUES (1, 'ABC-1234')")
+    cursor.execute("INSERT INTO carros (cliente_id, placa) VALUES (2, 'DEF-5678')")
 
     # Inserir peças
     cursor.execute(
@@ -277,7 +276,7 @@ def inserir_dados_iniciais(conexao):
 
     conexao.commit()
     print("Dados iniciais inseridos com sucesso!")
-    
+
 
 def obter_clientes(conexao):
     conexao = criar_conexao(nome_banco_de_dados)
@@ -288,9 +287,7 @@ def obter_clientes(conexao):
 
 def obter_carros_por_cliente(conexao, cliente_id):
     cursor = conexao.cursor()
-    cursor.execute(
-        "SELECT * FROM carros WHERE cliente_id = ?", (cliente_id,)
-    )
+    cursor.execute("SELECT * FROM carros WHERE cliente_id = ?", (cliente_id,))
     return cursor.fetchall()
 
 
@@ -308,56 +305,84 @@ def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades):
         conexao: A conexão com o banco de dados.
         cliente_id: O ID do cliente.
         carro_id: O ID do carro.
-        pecas_quantidades: Um dicionário onde as chaves são os IDs das peças 
+        pecas_quantidades: Um dicionário onde as chaves são os IDs das peças
         e os valores são as quantidades.
     """
-    cursor = conexao.cursor()
-    cursor.execute(
-        """
-        INSERT INTO ordem_servico (cliente_id, carro_id)
-        VALUES (?, ?)
-        """,
-        (cliente_id, carro_id),
-    )
-    ordem_servico_id = cursor.lastrowid
-    
-    # Inserir peças na tabela PecasOrdemServico
-    for peca_id, quantidade in pecas_quantidades.items():
-        
+    try:
+        print(
+            "Peças e quantidades recebidas em inserir_ordem_servico:", pecas_quantidades
+        )
+        cursor = conexao.cursor()
         cursor.execute(
             """
-            INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
-            VALUES (?, ?, ?)
+            INSERT INTO ordem_servico (cliente_id, carro_id)
+            VALUES (?, ?)
             """,
-            (ordem_servico_id, peca_id, quantidade),
+            (cliente_id, carro_id),
         )
-    conexao.commit()
-    return ordem_servico_id
+        ordem_servico_id = cursor.lastrowid
 
+        # Inserir peças na tabela PecasOrdemServico
+        for peca_id, quantidade in pecas_quantidades.items():
+            print(
+                f"Inserindo peça {peca_id} com quantidade {quantidade} na OS {ordem_servico_id}"
+            )
+            cursor.execute(
+                """
+                INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
+                VALUES (?, ?, ?)
+                """,
+                (ordem_servico_id, peca_id, quantidade),
+            )
+        conexao.commit()
+        return ordem_servico_id
 
+    except Exception as e:
+        print(f"Erro em inserir_ordem_servico: {e}")
+        return None
+
+#Atualiza o estoque da peça.
 def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
-    cursor = conexao.cursor()
-    cursor.execute(
-        """
-        UPDATE pecas
-        SET quantidade_em_estoque = quantidade_em_estoque + ?
-        WHERE id = ?
-        """,
-        (quantidade_utilizada, peca_id),
-    )
-    conexao.commit()
+    try:
+        print(f"Atualizando estoque da peça {peca_id}. Quantidade utilizada: {quantidade_utilizada}")
+        cursor = conexao.cursor()
+        cursor.execute(
+            """
+            UPDATE pecas
+            SET quantidade_em_estoque = quantidade_em_estoque + ?
+            WHERE id = ?
+            """,
+            (quantidade_utilizada, peca_id),
+        )
+        conexao.commit()
+    except Exception as e:
+        print(f"Erro em atualizar_estoque_peca: {e}")
+
 
 def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
     """Verifica se a quantidade em estoque é suficiente para a peça."""
-    cursor = conexao.cursor()
-    cursor.execute(
-        "SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,)
-    )
-    resultado = cursor.fetchone()
-    if resultado:
+    try:
+        print(
+            f"Verificando estoque da peça {peca_id}. Quantidade necessária: {quantidade_necessaria}"
+        )
+        cursor = conexao.cursor()
+        cursor.execute(
+            "SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,)
+        )
+        resultado = cursor.fetchone()
+
+        if resultado is None:
+            print(f"ERRO: Peça com ID {peca_id} não encontrada na tabela 'pecas'.")
+            return False
+
         quantidade_em_estoque = resultado[0]
+        print(f"Quantidade em estoque: {quantidade_em_estoque}")
         return quantidade_em_estoque >= quantidade_necessaria
-    return False
+
+    except Exception as e:
+        print(f"Erro em quantidade_em_estoque_suficiente: {e}")
+        return False
+
 
 if __name__ == "__main__":
     conexao = criar_conexao("./data/oficina_guarulhos.db")

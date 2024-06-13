@@ -11,6 +11,7 @@ from flet import (
     TextField,
     UserControl,
     colors,
+    Dropdown,
 )
 import threading
 import sqlite3
@@ -40,15 +41,14 @@ from database import (
 )
 
 
-
-
 class OrdemServicoFormulario(UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
-    def __init__(self, page, oficina_app):
+    def __init__(self, page, oficina_app, pecas):
         super().__init__()
         self.page = page
         self.oficina_app = oficina_app
+        self.pecas = pecas  # Inicializar self.pecas
 
         self.cliente_dropdown = Dropdown(
             width=300,
@@ -134,7 +134,7 @@ class OrdemServicoFormulario(UserControl):
         # Incluir o ID na lista de peças selecionadas
         self.pecas_selecionadas.append(
             {
-                "id": peca_id, # Adicionando o ID da peça
+                "id": peca_id,  # Adicionando o ID da peça
                 "nome": peca_nome,
                 "preco_unitario": preco_unitario,
                 "quantidade": quantidade,
@@ -907,50 +907,15 @@ class OficinaApp:
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
 
+        # Criar OrdemServicoFormulario passando self.pecas como argumento
+        self.ordem_servico_formulario = OrdemServicoFormulario(
+            self.page, self, self.pecas
+        )
+
         self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
-            content=ft.Column(
-                [
-                    ft.Row(
-                        [
-                            ft.Text("Cliente:", width=100),
-                            self.cliente_dropdown,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text("Carro:", width=100),
-                            self.carro_dropdown,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text("Peça:", width=100),
-                            self.peca_dropdown,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text("Preço Unitário:", width=100),
-                            self.preco_unitario_field,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            ft.Text("Quantidade:", width=100),
-                            self.quantidade_field,
-                        ],
-                    ),
-                    ft.Row(
-                        [
-                            self.adicionar_peca_button,
-                        ],
-                    ),
-                    self.pecas_list_view,
-                    self.valor_total_text,
-                ]
-            ),
+            content=self.ordem_servico_formulario,
             actions=[
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
                 ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
@@ -1031,9 +996,9 @@ class OficinaApp:
     def criar_ordem_servico(self, e):
         if not all(
             [
-                self.cliente_dropdown.value,
-                self.carro_dropdown.value,
-                self.pecas_selecionadas,
+                self.ordem_servico_formulario.cliente_dropdown.value,
+                self.ordem_servico_formulario.carro_dropdown.value,
+                self.pecas_selecionadas,  # self.pecas_selecionadas continua em OficinaApp
             ]
         ):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"))
@@ -1043,8 +1008,8 @@ class OficinaApp:
         pecas_quantidades = {}
 
         try:
-            cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
-            carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1][:-1])
+            cliente_id = int(self.ordem_servico_formulario.cliente_dropdown.value.split(" (ID: ")[1][:-1])
+            carro_id = int(self.ordem_servico_formulario.carro_dropdown.value.split(" (ID: ")[1][:-1])
 
             # Imprime o conteúdo das listas antes do loop (apenas para debug)
             print("self.pecas_selecionadas:", self.pecas_selecionadas)
