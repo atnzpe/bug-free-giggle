@@ -189,7 +189,8 @@ class OficinaApp:
         conexao = conexao_db
         self.conexao = criar_conexao(nome_banco_de_dados)
         self.carro_dropdown_os = ft.Dropdown(width=300)
-
+        self.clientes_dropdown = ft.Dropdown(width=300)  # Crie um objeto Dropdown
+        
         self.cliente_dropdown_os = ft.Dropdown(
             width=300,
             on_change=self.carregar_clientes_no_dropdown_os,  # Referencie o método
