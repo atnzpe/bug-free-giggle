@@ -10,7 +10,7 @@ from flet import (
     ListView,
 )
 
-from oficina_app import adicionar_peca
+
 
 class OrdemServicoFormulario(ft.UserControl):
     def __init__(self, page, oficina_app):
