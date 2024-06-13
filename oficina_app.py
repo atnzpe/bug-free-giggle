@@ -1,5 +1,5 @@
 from typing import Any
-
+from flet import Dropdown, dropdown  # Importa Dropdown e dropdown
 import flet as ft
 from flet import (
     Column,
@@ -10,8 +10,7 @@ from flet import (
     Text,
     TextField,
     UserControl,
-    colors,
-    Dropdown,
+    colors
 )
 import threading
 import sqlite3

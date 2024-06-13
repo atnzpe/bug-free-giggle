@@ -1,7 +1,7 @@
 
 import flet as ft
 import threading
-
+from flet import Dropdown, dropdown  # Importa Dropdown e dropdown
 
 from oficina_app import OficinaApp, processar_fila_db
 
