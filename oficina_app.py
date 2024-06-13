@@ -959,7 +959,6 @@ class OficinaApp:
             ),
             
             actions=[
-                ft.TextButton("Adicionar peca", on_click=self.adicionar_peca_button),
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
                 ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
             ],
@@ -1055,26 +1054,25 @@ class OficinaApp:
             carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1][:-1])
 
             # Obter os IDs das peças a partir dos nomes
-            peca_ids = []
-            quantidades = []
+            pecas_quantidades = {}
             for peca_selecionada in self.pecas_selecionadas:
-                for peca in self.pecas:
-                    if peca_selecionada["nome"] == peca[1]:
-                        peca_ids.append(peca[0])
-                        quantidades.append(peca_selecionada["quantidade"])
-                        break
+                peca_id = next(
+                    (peca[0] for peca in self.pecas if peca[1] == peca_selecionada["nome"]),
+                    None,
+                )
+                if peca_id:
+                    pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
 
             # Inserir a ordem de serviço no banco de dados
             with criar_conexao(nome_banco_de_dados) as conexao:
                 ordem_servico_id = inserir_ordem_servico(
-                    conexao, cliente_id, carro_id, peca_ids, quantidades
+                    conexao, cliente_id, carro_id, pecas_quantidades
                 )
 
                 if ordem_servico_id is not None:
                     # Atualizar o estoque das peças
-                    for i, peca_id in enumerate(peca_ids):
-                        quantidade_utilizada = quantidades[i]
-                        atualizar_estoque_peca(conexao, peca_id, -quantidade_utilizada)
+                    for peca_id, quantidade in pecas_quantidades.items():
+                        atualizar_estoque_peca(conexao, peca_id, -quantidade)
 
             self.gerar_pdf_os(ordem_servico_id)
             self.fechar_modal_os(e)

@@ -10,6 +10,8 @@ from flet import (
     ListView,
 )
 
+from oficina_app import adicionar_peca
+
 class OrdemServicoFormulario(ft.UserControl):
     def __init__(self, page, oficina_app):
         super().__init__()
@@ -42,31 +44,47 @@ class OrdemServicoFormulario(ft.UserControl):
 
     def build(self):
         return Column(
-            [
-                Row(
-                    [
-                        Text("Cliente:", width=100),
-                        self.cliente_dropdown,
-                    ],
-                ),
-                Row(
-                    [
-                        Text("Carro:", width=100),
-                        self.carro_dropdown,
-                    ],
-                ),
-                Row(
-                    [
-                        Text("Peça:", width=100),
-                        self.peca_dropdown,
-                        self.quantidade_field,
-                        self.adicionar_peca_button,
-                    ],
-                ),
-                self.pecas_list_view,
-                self.valor_total_text,
-            ]
-        )
+                [
+                    ft.Row(
+                        [
+                            ft.Text("Cliente:", width=100),
+                            self.cliente_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Carro:", width=100),
+                            self.carro_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Peça:", width=100),
+                            self.peca_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Preço Unitário:", width=100),
+                            self.preco_unitario_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Quantidade:", width=100),
+                            self.quantidade_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            self.adicionar_peca_button,
+                        ],
+                    ),
+                    
+                    self.pecas_list_view,
+                    self.valor_total_text,
+                ]
+            )
 
     def cliente_alterado(self, e):
         self.carro_dropdown.options = []
