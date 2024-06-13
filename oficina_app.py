@@ -34,6 +34,7 @@ from database import (
     obter_pecas,
     inserir_ordem_servico,
     atualizar_estoque_peca,
+    quantidade_em_estoque_suficiente,
     nome_banco_de_dados,
     fila_db,
 )
@@ -1065,12 +1066,21 @@ class OficinaApp:
 
             # Inserir a ordem de serviço no banco de dados
             with criar_conexao(nome_banco_de_dados) as conexao:
+
+                # 1. Verificar a quantidade em estoque ANTES de criar a OS
+                for peca_id, quantidade in pecas_quantidades.items():
+                    if not quantidade_em_estoque_suficiente(conexao, peca_id, quantidade):
+                        raise ValueError(
+                            f"Quantidade insuficiente em estoque para a peça {peca_id}"
+                        )
+
+                # 2. Inserir a OS somente se houver estoque suficiente
                 ordem_servico_id = inserir_ordem_servico(
                     conexao, cliente_id, carro_id, pecas_quantidades
                 )
 
+                # 3. Atualizar o estoque APÓS criar a OS com sucesso
                 if ordem_servico_id is not None:
-                    # Atualizar o estoque das peças
                     for peca_id, quantidade in pecas_quantidades.items():
                         atualizar_estoque_peca(conexao, peca_id, -quantidade)
 

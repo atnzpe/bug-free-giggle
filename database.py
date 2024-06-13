@@ -347,6 +347,17 @@ def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
     )
     conexao.commit()
 
+def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
+    """Verifica se a quantidade em estoque é suficiente para a peça."""
+    cursor = conexao.cursor()
+    cursor.execute(
+        "SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,)
+    )
+    resultado = cursor.fetchone()
+    if resultado:
+        quantidade_em_estoque = resultado[0]
+        return quantidade_em_estoque >= quantidade_necessaria
+    return False
 
 if __name__ == "__main__":
     conexao = criar_conexao("./data/oficina_guarulhos.db")
