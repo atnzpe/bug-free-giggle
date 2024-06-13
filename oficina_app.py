@@ -1044,42 +1044,43 @@ class OficinaApp:
                 self.pecas_selecionadas,
             ]
         ):
-            ft.snack_bar = ft.SnackBar(
-                ft.Text("Preencha todos os campos!"),
-            )
+            ft.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"))
             self.page.show_snack_bar(ft.snack_bar)
             return
+
+        pecas_quantidades = {}
 
         try:
             cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
             carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1][:-1])
 
-            # Obter os IDs das peças a partir dos nomes
-            pecas_quantidades = {}
+            # Preencher o dicionário pecas_quantidades
             for peca_selecionada in self.pecas_selecionadas:
+                # Simplificando a busca pelo ID da peça
                 peca_id = next(
-                    (peca[0] for peca in self.pecas if peca[1] == peca_selecionada["nome"]),
-                    None,
+                    (peca[0] for peca in self.pecas if peca[1] == peca_selecionada["nome"]), None
                 )
-                if peca_id:
+                if peca_id is not None:
                     pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
 
-            # Inserir a ordem de serviço no banco de dados
-            with criar_conexao(nome_banco_de_dados) as conexao:
+            print("Conteúdo de pecas_quantidades:", pecas_quantidades)
 
-                # 1. Verificar a quantidade em estoque ANTES de criar a OS
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                # Verificar a quantidade em estoque ANTES de criar a OS
                 for peca_id, quantidade in pecas_quantidades.items():
-                    if not quantidade_em_estoque_suficiente(conexao, peca_id, quantidade):
+                    if not quantidade_em_estoque_suficiente(
+                        conexao, peca_id, quantidade
+                    ):
                         raise ValueError(
                             f"Quantidade insuficiente em estoque para a peça {peca_id}"
                         )
 
-                # 2. Inserir a OS somente se houver estoque suficiente
+                # Inserir a OS somente se houver estoque suficiente
                 ordem_servico_id = inserir_ordem_servico(
                     conexao, cliente_id, carro_id, pecas_quantidades
                 )
 
-                # 3. Atualizar o estoque APÓS criar a OS com sucesso
+                # Atualizar o estoque APÓS criar a OS com sucesso
                 if ordem_servico_id is not None:
                     for peca_id, quantidade in pecas_quantidades.items():
                         atualizar_estoque_peca(conexao, peca_id, -quantidade)
@@ -1087,11 +1088,21 @@ class OficinaApp:
             self.gerar_pdf_os(ordem_servico_id)
             self.fechar_modal_os(e)
             self.limpar_campos_os()
-            ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
+            ft.snack_bar = ft.SnackBar(
+                ft.Text("Ordem de Serviço criada com sucesso!")
+            )
+            self.page.show_snack_bar(ft.snack_bar)
+        except ValueError as e:
+            # Exibe a mensagem de erro específica para erros de validação
+            print(f"Erro de validação: {e}")
+            ft.snack_bar = ft.SnackBar(ft.Text(str(e)))
             self.page.show_snack_bar(ft.snack_bar)
         except Exception as e:
-            print(f"Erro ao criar ordem de serviço: {e}")
-            ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
+            print("Conteúdo de pecas_quantidades:", pecas_quantidades)
+            print(f"Aqui deu erro Erro ao criar ordem de serviço: {e}")
+            ft.snack_bar = ft.SnackBar(
+                ft.Text("Erro ao criar ordem de serviço!")
+            )
             self.page.show_snack_bar(ft.snack_bar)
 
     def gerar_pdf_os(self, ordem_servico_id):
