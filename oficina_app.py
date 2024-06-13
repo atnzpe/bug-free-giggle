@@ -1056,22 +1056,24 @@ class OficinaApp:
 
             # Obter os IDs das peças a partir dos nomes
             peca_ids = []
+            quantidades = []
             for peca_selecionada in self.pecas_selecionadas:
                 for peca in self.pecas:
                     if peca_selecionada["nome"] == peca[1]:
                         peca_ids.append(peca[0])
+                        quantidades.append(peca_selecionada["quantidade"])
                         break
 
             # Inserir a ordem de serviço no banco de dados
             with criar_conexao(nome_banco_de_dados) as conexao:
                 ordem_servico_id = inserir_ordem_servico(
-                    conexao, cliente_id, carro_id, peca_ids
+                    conexao, cliente_id, carro_id, peca_ids, quantidades
                 )
 
                 if ordem_servico_id is not None:
                     # Atualizar o estoque das peças
                     for i, peca_id in enumerate(peca_ids):
-                        quantidade_utilizada = self.pecas_selecionadas[i]["quantidade"]
+                        quantidade_utilizada = quantidades[i]
                         atualizar_estoque_peca(conexao, peca_id, -quantidade_utilizada)
 
             self.gerar_pdf_os(ordem_servico_id)

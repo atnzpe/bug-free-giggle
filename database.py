@@ -300,7 +300,7 @@ def obter_pecas(conexao):
     return cursor.fetchall()
 
 
-def inserir_ordem_servico(conexao, cliente_id, carro_id, peca_ids):
+def inserir_ordem_servico(conexao, cliente_id, carro_id, peca_ids, quantidades):
     cursor = conexao.cursor()
     cursor.execute(
         """
@@ -310,9 +310,17 @@ def inserir_ordem_servico(conexao, cliente_id, carro_id, peca_ids):
         (cliente_id, carro_id),
     )
     ordem_servico_id = cursor.lastrowid
+    
     # Inserir peças na tabela PecasOrdemServico
     for i, peca_id in enumerate(peca_ids):
-        quantidade = int(input(f"Quantidade da peça {peca_id}: "))
+        # Utiliza a quantidade recebida como argumento
+        quantidade = quantidades[i]
+        
+        #quantidade = int(input(f"Quantidade da peça {peca_id}: "))
+        # Validação de quantidade em estoque (implementar lógica)
+        if not quantidade_em_estoque_suficiente(conexao, peca_id, quantidade):
+            raise ValueError(f"Quantidade insuficiente em estoque para a peça {peca_id}")
+        
         cursor.execute(
             """
             INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
