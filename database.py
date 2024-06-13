@@ -301,6 +301,16 @@ def obter_pecas(conexao):
 
 
 def inserir_ordem_servico(conexao, cliente_id, carro_id, peca_ids, quantidades):
+    """
+    Insere uma nova ordem de serviço no banco de dados.
+
+    Args:
+        conexao: A conexão com o banco de dados.
+        cliente_id: O ID do cliente.
+        carro_id: O ID do carro.
+        peca_ids: Uma lista de IDs das peças.
+        quantidades: Uma lista de quantidades para cada peça. 
+    """
     cursor = conexao.cursor()
     cursor.execute(
         """
@@ -318,8 +328,8 @@ def inserir_ordem_servico(conexao, cliente_id, carro_id, peca_ids, quantidades):
         
         #quantidade = int(input(f"Quantidade da peça {peca_id}: "))
         # Validação de quantidade em estoque (implementar lógica)
-        if not quantidade_em_estoque_suficiente(conexao, peca_id, quantidade):
-            raise ValueError(f"Quantidade insuficiente em estoque para a peça {peca_id}")
+        #if not quantidade_em_estoque_suficiente(conexao, peca_id, quantidade):
+        #    raise ValueError(f"Quantidade insuficiente em estoque para a peça {peca_id}")
         
         cursor.execute(
             """
