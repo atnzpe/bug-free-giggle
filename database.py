@@ -338,7 +338,7 @@ def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
 
 
 if __name__ == "__main__":
-    conexao = criar_conexao("oficina.db")
+    conexao = criar_conexao("./data/oficina_guarulhos.db")
     if conexao is not None:
         criar_tabelas(conexao)
         inserir_dados_iniciais(conexao)
