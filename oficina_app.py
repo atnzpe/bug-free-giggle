@@ -75,6 +75,7 @@ class OrdemServicoFormulario(UserControl):
         )
         self.pecas_list_view = ListView(expand=True, height=200)
         self.valor_total_text = Text("Valor Total: R$ 0.00")
+        
 
     def build(self):
         return Column(
@@ -931,16 +932,29 @@ class OficinaApp:
                         [
                             ft.Text("Peça:", width=100),
                             self.peca_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Preço Unitário:", width=100),
                             self.preco_unitario_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Quantidade:", width=100),
                             self.quantidade_field,
                             self.adicionar_peca_button,
                         ],
                     ),
+                    
                     self.pecas_list_view,
                     self.valor_total_text,
                 ]
             ),
+            
             actions=[
+                ft.TextButton("Adicionar peca", on_click=self.adicionar_peca_button),
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
                 ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
             ],

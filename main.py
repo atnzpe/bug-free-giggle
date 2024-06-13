@@ -3,7 +3,7 @@ import flet as ft
 import threading
 
 
-from services import OficinaApp, processar_fila_db
+from oficina_app import OficinaApp, processar_fila_db
 
 
 

@@ -4,6 +4,15 @@ import os
 import flet as ft
 import queue
 
+# BANCO DE DADAS E FILA
+#nome_banco_de_dados = "./data/oficina_guarulhos.db"
+# nome_banco_de_dados = "./data/oficina_guarulhosTeste.db"
+# nome_banco_de_dados = "./data/oficina_guarulhosProdução.db"
+
+
+# Fila para operações do banco de dados
+fila_db = queue.Queue()
+# versao1.0
 
 # Cria conexão com o Banco de Dados Sqlite3 e cria as tabelas
 def criar_conexao(banco_de_dados):
@@ -28,6 +37,11 @@ def criar_conexao(banco_de_dados):
         print(f"Erro ao conectar ao banco de dados: {erro}")
     return conexao
 
+#conexao_db = criar_conexao(nome_banco_de_dados)
+#conexao = criar_conexao(nome_banco_de_dados)
+# Fila para operações do banco de dados
+fila_db = queue.Queue()
+# versao1.0
 
 # Executa uma consulta SQL na conexão fornecida
 def executar_sql(conexao, sql, parametros=None):
@@ -266,6 +280,7 @@ def inserir_dados_iniciais(conexao):
     
 
 def obter_clientes(conexao):
+    conexao = criar_conexao(nome_banco_de_dados)
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM clientes")
     return cursor.fetchall()
