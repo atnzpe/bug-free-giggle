@@ -40,6 +40,8 @@ from database import (
 )
 
 
+
+
 class OrdemServicoFormulario(UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
@@ -118,17 +120,21 @@ class OrdemServicoFormulario(UserControl):
 
     def adicionar_peca(self, e):
         peca_nome = self.peca_dropdown.value
+        preco_unitario = float(self.preco_unitario_field.value)
         quantidade = float(self.quantidade_field.value)
-
-        # Obter o preço unitário da peça selecionada
-        preco_unitario = next(
-            (peca[5] for peca in self.oficina_app.pecas if peca[1] == peca_nome),
-            0.00,
-        )  # Retorna 0.00 se a peça não for encontrada
-
         valor_total = preco_unitario * quantidade
-        self.oficina_app.pecas_selecionadas.append(
+
+        # Obter o ID da peça a partir de self.pecas
+        peca_id = next((peca[0] for peca in self.pecas if peca[1] == peca_nome), None)
+
+        if peca_id is None:
+            print(f"Erro: Peça '{peca_nome}' não encontrada em self.pecas")
+            return
+
+        # Incluir o ID na lista de peças selecionadas
+        self.pecas_selecionadas.append(
             {
+                "id": peca_id, # Adicionando o ID da peça
                 "nome": peca_nome,
                 "preco_unitario": preco_unitario,
                 "quantidade": quantidade,
@@ -1040,34 +1046,35 @@ class OficinaApp:
             cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
             carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1][:-1])
 
-            # Imprime o conteúdo das listas antes do loop
+            # Imprime o conteúdo das listas antes do loop (apenas para debug)
             print("self.pecas_selecionadas:", self.pecas_selecionadas)
             print("self.pecas:", self.pecas)
 
             # Preencher o dicionário pecas_quantidades
             for peca_selecionada in self.pecas_selecionadas:
-                print("peca_selecionada:", peca_selecionada)  # Novo print
+                print("peca_selecionada:", peca_selecionada)
                 peca_id = None
-                print("peca_id:", peca_id)  # Novo print
-                
+
                 # Utiliza enumerate para obter o índice e o valor de self.pecas
                 for indice, peca in enumerate(self.pecas):
                     # CORREÇÃO: Compara com peca_selecionada['id'], não com o índice
-                    print(f"Comparando peca_selecionada['id'] ({peca_selecionada['id']}) com peca[{indice}][0] ({peca[0]})")
-                    print("Conteúdo de pecas_quantidades a cda inclusao:", pecas_quantidades)
-                    if peca[0] == peca_selecionada['id']:
-                        peca_id = peca[0]  # Define peca_id se a comparação for verdadeira
+                    print(
+                        f"Comparando peca_selecionada['id'] ({peca_selecionada['id']}) com peca[{indice}][0] ({peca[0]})"
+                    )
+                    if peca[0] == peca_selecionada["id"]:
+                        peca_id = peca[0]
                         pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
-                        break # Sai do loop interno após encontrar a peça
-                    
-                # Verifica se peca_id foi encontrado
-                if peca_id is not None:
-                    print("peca_id:", peca_id)
-                else:
-                    print(f"peça com ID {peca_selecionada['id']} não encontrada em self.pecas")
+                        print(
+                            f"Peça encontrada! peca_id: {peca_id}, quantidade: {peca_selecionada['quantidade']}"
+                        )
+                        break  # Sai do loop interno após encontrar a peça
+
+                if peca_id is None:
+                    print(
+                        f"ERRO: Peça com ID {peca_selecionada['id']} não encontrada em self.pecas"
+                    )
 
             print("Conteúdo de pecas_quantidades:", pecas_quantidades)
-                
 
             with criar_conexao(nome_banco_de_dados) as conexao:
                 # Verificar a quantidade em estoque ANTES de criar a OS
@@ -1094,17 +1101,14 @@ class OficinaApp:
             self.limpar_campos_os()
             ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
             self.page.show_snack_bar(ft.snack_bar)
+
         except ValueError as e:
             # Exibe a mensagem de erro específica para erros de validação
             print(f"Erro de validação: {e}")
             ft.snack_bar = ft.SnackBar(ft.Text(str(e)))
             self.page.show_snack_bar(ft.snack_bar)
         except Exception as e:
-            print("IMprime se deu erro o Conteúdo de pecas_quantidades:", pecas_quantidades)
-            # Imprime o conteúdo das listas antes do loop
-            print("self.pecas_selecionadas:", self.pecas_selecionadas)
-            print("self.pecas:", self.pecas)
-            print(f"Aqui deu erro Erro ao criar ordem de serviço: {e}")
+            print(f"Erro ao criar ordem de serviço: {e}")
             ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
             self.page.show_snack_bar(ft.snack_bar)
 
