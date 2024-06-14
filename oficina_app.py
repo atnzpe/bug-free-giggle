@@ -49,7 +49,7 @@ class OficinaApp:
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.cliente_selecionado = None
         self.carro_selecionado = None
-        self.pecas_selecionadas = []
+        
         self.ordem_servico_formulario = OrdemServicoFormulario()
         self.carregar_dados()
         self.build_ui()
@@ -67,6 +67,10 @@ class OficinaApp:
         conexao = conexao_db
         self.conexao = criar_conexao(nome_banco_de_dados)
 
+        self.ordem_servico_formulario = OrdemServicoFormulario(
+            self.page, self, self.carregar_dados() # Carrega os dados aqui
+        )
+        
         # Carrega o Dropdown ao Iniciar
         self.carregar_clientes_no_dropdown()
 
@@ -803,7 +807,7 @@ class OficinaApp:
             [
                 self.ordem_servico_formulario.cliente_dropdown.value,
                 self.ordem_servico_formulario.carro_dropdown.value,
-                self.pecas_selecionadas,  # self.pecas_selecionadas continua em OficinaApp
+                self.ordem_servico_formulario.pecas_selecionadas,  # self.pecas_selecionadas continua em OficinaApp
             ]
         ):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"))
@@ -925,7 +929,7 @@ class OficinaApp:
                 )
             )
             conteudo.append(Spacer(1, 12))
-            for peca in self.pecas_selecionadas:
+            for peca in self.ordem_servico_formulario.pecas_selecionadas:
                 conteudo.append(
                     Paragraph(
                         f"- {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}",
