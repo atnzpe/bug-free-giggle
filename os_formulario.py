@@ -40,27 +40,23 @@ from database import (
     fila_db,
 )
 
-
 class OrdemServicoFormulario(UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
-    def __init__(self, page, oficina_app, pecas, carro_dropdown, clientes):
+    def __init__(self, page, oficina_app, pecas,  clientes):
         super().__init__()
         self.page = page
         self.oficina_app = oficina_app
         self.pecas = pecas
         self.clientes = clientes
-        self.carro_dropdown = carro_dropdown
+        self.oficina = Oficina()
+        
+        # Inicializa os atributos no construtor
         self.carro_dropdown_os = ft.Dropdown(width=300)
-        self.pecas_selecionadas = []
         self.clientes_dropdown = ft.Dropdown(width=300)
         self.evento_clientes_carregados = threading.Event()
-        self.usuario_atual = None
-        self.cliente_selecionado = None
-        self.clientes_dropdown = []
-        self.evento_clientes_carregados = threading.Event()
-        conexao_db = criar_conexao(nome_banco_de_dados)
-        conexao = conexao_db
+
+        # Define a conexão como atributo da instancia
         self.conexao = criar_conexao(nome_banco_de_dados)
 
         try:
@@ -83,14 +79,14 @@ class OrdemServicoFormulario(UserControl):
         self.evento_clientes_carregados = threading.Event()
         
     def build(self):
-        '''self.cliente_dropdown = ft.Dropdown(
+        self.cliente_dropdown = ft.Dropdown(
             width=300,
             options=[
                 ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
                 for cliente in self.clientes
             ],
             on_change=self.cliente_alterado,
-        )'''
+        )
         self.carro_dropdown = ft.Dropdown(width=300)
         self.peca_dropdown = ft.Dropdown(
             width=200,
@@ -156,28 +152,19 @@ class OrdemServicoFormulario(UserControl):
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
+        
         return self.modal_ordem_servico # Retornar o modal
         
     def abrir_modal_os(self, e):
-        """Abre o modal para criar uma nova ordem de serviço."""
-        self.clientes_dropdown.value = None 
-        self.carro_dropdown.options = []  
-        self.carro_dropdown.value = None
-        self.peca_dropdown.value = None
-        self.preco_unitario_field.value = "0.00"
-        self.quantidade_field.value = "1"
-        self.pecas_selecionadas = []
-        self.pecas_list_view.controls = []
-        self.valor_total_text.value = "Valor Total: R$ 0.00"
-        self.page.update()
-
-        self.page.dialog = self.modal_ordem_servico
-        self.modal_ordem_servico.open = True
-        self.page.update()
-
+            """Abre o modal para criar uma nova ordem de serviço."""
+            self.limpar_campos_os()
+            self.page.dialog = self.oficina_app.modal_ordem_servico
+            self.modal_ordem_servico.open = True
+            self.page.update()
+            
     def limpar_campos_os(self):
         """Limpa os campos do modal de ordem de serviço."""
-        #self.cliente_dropdown.value = None
+        self.cliente_dropdown.value = None
         self.carro_dropdown.options = []  # Limpa as opções de carros
         self.carro_dropdown.value = None
         self.peca_dropdown.value = None
@@ -290,7 +277,7 @@ class OrdemServicoFormulario(UserControl):
             [
                 self.cliente_dropdown.value,
                 self.carro_dropdown.value,
-                self.oficina_app.pecas_selecionadas,  # self.pecas_selecionadas continua em OficinaApp
+                self.pecas_selecionadas,  # self.pecas_selecionadas continua em OficinaApp
             ]
         ):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"))
