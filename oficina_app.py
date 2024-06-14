@@ -44,11 +44,16 @@ from database import (
 class OrdemServicoFormulario(UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
-    def __init__(self, page, oficina_app, pecas):
+    def __init__(self, page, oficina_app, pecas, carro_dropdown):
         super().__init__()
         self.page = page
         self.oficina_app = oficina_app
         self.pecas = pecas  # Inicializar self.pecas
+        self.carro_dropdown_os = ft.Dropdown(width=300)
+        self.page = page
+        self.oficina_app = oficina_app
+        self.pecas = pecas
+        self.carro_dropdown = carro_dropdown
 
         self.cliente_dropdown = Dropdown(
             width=300,
@@ -64,10 +69,7 @@ class OrdemServicoFormulario(UserControl):
             options=[dropdown.Option(f"{peca[1]}") for peca in self.oficina_app.pecas],
         )
         self.preco_unitario_field = TextField(
-            label="Preço Unitário",
-            width=100,
-            value="0.00",
-            disabled=True,  # Desabilitado inicialmente
+            label="Preço Unitário", width=100, value="0.00", disabled=True,  # Desabilitado inicialmente
         )
         self.quantidade_field = TextField(label="Quantidade", width=100, value="1")
         self.adicionar_peca_button = ElevatedButton(
@@ -78,31 +80,46 @@ class OrdemServicoFormulario(UserControl):
 
     def build(self):
         return Column(
-            [
-                Row(
-                    [
-                        Text("Cliente:", width=100),
-                        self.cliente_dropdown,
-                    ],
-                ),
-                Row(
-                    [
-                        Text("Carro:", width=100),
-                        self.carro_dropdown,
-                    ],
-                ),
-                Row(
-                    [
-                        Text("Peça:", width=100),
-                        self.peca_dropdown,
-                        self.quantidade_field,
-                        self.adicionar_peca_button,
-                    ],
-                ),
-                self.pecas_list_view,
-                self.valor_total_text,
-            ]
-        )
+                [
+                    ft.Row(
+                        [
+                            ft.Text("Cliente:", width=100),
+                            self.cliente_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Carro:", width=100),
+                            self.oficina_app.carro_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Peça:", width=100),
+                            self.peca_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Preço Unitário:", width=100),
+                            self.preco_unitario_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Quantidade:", width=100),
+                            self.quantidade_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            self.adicionar_peca_button,
+                        ],
+                    ),
+                    self.pecas_list_view,
+                    self.valor_total_text,
+                ]
+            )
 
     def cliente_alterado(self, e):
         self.carro_dropdown.options = []
@@ -111,7 +128,7 @@ class OrdemServicoFormulario(UserControl):
             cliente_id = int(cliente_selecionado.split(" (ID: ")[1][:-1])
             with criar_conexao(nome_banco_de_dados) as conexao:
                 carros = obter_carros_por_cliente(conexao, cliente_id)
-                self.carro_dropdown.options = [
+                self.oficina_app.carro_dropdown.options = [
                     ft.dropdown.Option(f"{carro[1]} (ID: {carro[0]})")
                     for carro in carros
                 ]
@@ -908,9 +925,7 @@ class OficinaApp:
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
 
         # Criar OrdemServicoFormulario passando self.pecas como argumento
-        self.ordem_servico_formulario = OrdemServicoFormulario(
-            self.page, self, self.pecas
-        )
+        self.ordem_servico_formulario = OrdemServicoFormulario(self.page, self, self.pecas, self.carro_dropdown)
 
         self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
