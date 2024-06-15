@@ -782,8 +782,8 @@ class OficinaApp:
             title=ft.Text("Criar Ordem de Serviço"),
             content=self.ordem_servico_formulario, # Referenciar o formulário aqui
             actions=[
-                ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
-                ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
+                ft.TextButton("Cancelar", on_click=self.ordem_servico_formulario.fechar_modal_os),
+                ft.TextButton("Criar OS", on_click=self.ordem_servico_formulario.criar_ordem_servico),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
@@ -806,97 +806,7 @@ class OficinaApp:
 
     
 
-    def criar_ordem_servico(self, e):
-        if not all(
-            [
-                self.ordem_servico_formulario.cliente_dropdown.value,
-                self.ordem_servico_formulario.carro_dropdown.value,
-                self.ordem_servico_formulario.pecas_selecionadas,  # self.pecas_selecionadas continua em OficinaApp
-            ]
-        ):
-            ft.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"))
-            self.page.show_snack_bar(ft.snack_bar)
-            return
-
-        pecas_quantidades = {}
-
-        try:
-            cliente_id = int(
-                self.ordem_servico_formulario.cliente_dropdown.value.split(" (ID: ")[1][
-                    :-1
-                ]
-            )
-            carro_id = int(
-                self.ordem_servico_formulario.carro_dropdown.value.split(" (ID: ")[1][
-                    :-1
-                ]
-            )
-
-            # Imprime o conteúdo das listas antes do loop (apenas para debug)
-            print("self.pecas_selecionadas:", self.pecas_selecionadas)
-            print("self.pecas:", self.pecas)
-
-            # Preencher o dicionário pecas_quantidades
-            for peca_selecionada in self.ordem_servico_formulario.pecas_selecionadas:
-                print("peca_selecionada:", peca_selecionada)
-                peca_id = None
-
-                # Utiliza enumerate para obter o índice e o valor de self.pecas
-                for indice, peca in enumerate(self.pecas):
-                    # CORREÇÃO: Compara com peca_selecionada['nome'], não com peca[0]
-                    print(
-                        f"Comparando peca_selecionada['nome'] ({peca_selecionada['nome']}) com peca[{indice}][1] ({peca[1]})"
-                    )
-                    if peca[1] == peca_selecionada["nome"]:
-                        peca_id = peca[0]
-                        pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
-                        print(
-                            f"Peça encontrada! peca_id: {peca_id}, quantidade: {peca_selecionada['quantidade']}"
-                        )
-                        break  # Sai do loop interno após encontrar a peça
-
-                if peca_id is None:
-                    print(
-                        f"ERRO: Peça com ID {peca_selecionada['id']} não encontrada em self.pecas"
-                    )
-
-            print("Conteúdo de pecas_quantidades:", pecas_quantidades)
-
-            with criar_conexao(nome_banco_de_dados) as conexao:
-                # Verificar a quantidade em estoque ANTES de criar a OS
-                for peca_id, quantidade in pecas_quantidades.items():
-                    if not quantidade_em_estoque_suficiente(
-                        conexao, peca_id, quantidade
-                    ):
-                        raise ValueError(
-                            f"Quantidade insuficiente em estoque para a peça {peca_id}"
-                        )
-
-                # Inserir a OS somente se houver estoque suficiente
-                ordem_servico_id = inserir_ordem_servico(
-                    conexao, cliente_id, carro_id, pecas_quantidades
-                )
-
-                # Atualizar o estoque APÓS criar a OS com sucesso
-                if ordem_servico_id is not None:
-                    for peca_id, quantidade in pecas_quantidades.items():
-                        atualizar_estoque_peca(conexao, peca_id, -quantidade)
-
-            self.gerar_pdf_os(ordem_servico_id)
-            self.fechar_modal_os(e)
-            self.limpar_campos_os()
-            ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
-            self.page.show_snack_bar(ft.snack_bar)
-
-        except ValueError as e:
-            # Exibe a mensagem de erro específica para erros de validação
-            print(f"Erro de validação: {e}")
-            ft.snack_bar = ft.SnackBar(ft.Text(str(e)))
-            self.page.show_snack_bar(ft.snack_bar)
-        except Exception as e:
-            print(f"Erro ao criar ordem de serviço: {e}")
-            ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
-            self.page.show_snack_bar(ft.snack_bar)
+    
 
     def gerar_pdf_os(self, ordem_servico_id):
         try:

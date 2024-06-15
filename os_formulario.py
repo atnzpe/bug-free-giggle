@@ -402,7 +402,7 @@ class OrdemServicoFormulario(UserControl):
                     )
 
             print("Conteúdo de pecas_quantidades:", pecas_quantidades)
-
+            valor_total_os = sum(peca['valor_total'] for peca in self.pecas_selecionadas)
             with criar_conexao(nome_banco_de_dados) as conexao:
                 # Verificar a quantidade em estoque ANTES de criar a OS
                 for peca_id, quantidade in pecas_quantidades.items():
@@ -415,7 +415,7 @@ class OrdemServicoFormulario(UserControl):
 
                 # Inserir a OS somente se houver estoque suficiente
                 ordem_servico_id = inserir_ordem_servico(
-                    conexao, cliente_id, carro_id, pecas_quantidades
+                    conexao, cliente_id, carro_id, pecas_quantidades, valor_total_os
                 )
 
                 # Atualizar o estoque APÓS criar a OS com sucesso
@@ -442,7 +442,7 @@ class OrdemServicoFormulario(UserControl):
     def gerar_pdf_os(self, ordem_servico_id):
         try:
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-            placa_carro = self.carro_dropdown.value
+            placa_carro = self.carro_dropdown.value.replace(":","").replace(",","")
             data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
             nome_arquivo = f"{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
             caminho_pasta = "Histórico"
@@ -477,7 +477,7 @@ class OrdemServicoFormulario(UserControl):
             for peca in self.pecas_selecionadas:
                 conteudo.append(
                     Paragraph(
-                        f"- {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}",
+                        f"- Peça Utilizada: {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}",
                         estilos["Normal"],
                     )
                 )

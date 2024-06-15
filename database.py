@@ -3,6 +3,7 @@ import sqlite3
 import os
 import flet as ft
 import queue
+from datetime import datetime
 
 # BANCO DE DADAS E FILA
 # nome_banco_de_dados = "./data/oficina_guarulhos.db"
@@ -297,7 +298,7 @@ def obter_pecas(conexao):
     return cursor.fetchall()
 
 
-def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades):
+def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades, valor_total):
     """
     Insere uma nova ordem de serviço no banco de dados.
 
@@ -307,18 +308,24 @@ def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades):
         carro_id: O ID do carro.
         pecas_quantidades: Um dicionário onde as chaves são os IDs das peças
         e os valores são as quantidades.
+        valor_total: O valor total da ordem de serviço.
     """
     try:
         print(
             "Peças e quantidades recebidas em inserir_ordem_servico:", pecas_quantidades
         )
         cursor = conexao.cursor()
+        
+        #Obtem a Dta e Hora
+        data_hora = datetime.now()
+        
+        # Inserir a ordem de serviço com data_hora e valor_total
         cursor.execute(
             """
-            INSERT INTO ordem_servico (cliente_id, carro_id)
-            VALUES (?, ?)
+            INSERT INTO ordem_servico (cliente_id, carro_id, data_criacao, valor_total)
+            VALUES (?, ?,?,?)
             """,
-            (cliente_id, carro_id),
+            (cliente_id, carro_id, data_hora, valor_total ),
         )
         ordem_servico_id = cursor.lastrowid
 
