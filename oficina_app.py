@@ -809,24 +809,57 @@ class OficinaApp:
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-        
-        
+    #================================
+    # RELATORIOS
+    #================================
     
-    
+    def abrir_modal_relatorio(self, e):
+        """Abre o modal para selecionar o tipo de relatório."""
 
+        self.modal_relatorio = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Gerar Relatório"),
+            content=ft.Column(
+                [
+                    ft.ElevatedButton(
+                        "Relatório OS", on_click=self.gerar_relatorio_os
+                    ),  # Implementar lógica depois
+                    ft.ElevatedButton(
+                        "Saldo de Estoque", on_click=self.gerar_relatorio_estoque
+                    ),  # Implementar lógica depois
+                    ft.ElevatedButton(
+                        "OS por Cliente", on_click=self.abrir_modal_os_por_cliente
+                    ),  # Implementar lógica depois
+                ]
+            ),
+            actions=[
+                ft.TextButton("Fechar", on_click=self.fechar_modal),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self.page.dialog = self.modal_relatorio
+        self.modal_relatorio.open = True
+        self.page.update()
     
+    def gerar_relatorio_os(self, e):
+        """Gera um relatório com todas as OSs criadas."""
+        # Implementar lógica para gerar relatório de OSs aqui
+        print("Gerar relatório de OSs...")
+        self.fechar_modal(e)
 
-    
+    def gerar_relatorio_estoque(self, e):
+        """Gera um PDF do estoque."""
+        # Implementar lógica para gerar relatório de estoque aqui
+        print("Gerar relatório de estoque...")
+        self.fechar_modal(e)
 
+    def abrir_modal_os_por_cliente(self, e):
+        """Abre o modal para selecionar as OSs por cliente."""
+        # Implementar lógica para exibir e selecionar OSs por cliente aqui
+        print("Abrir modal de OSs por cliente...")
+        self.fechar_modal(e)
     
-
     
-    
-
-    
-
-    
-
     # =============================
     # SAIR DO APLICATIVO
     # ============================
