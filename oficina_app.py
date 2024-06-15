@@ -676,16 +676,6 @@ class OficinaApp:
                                     ft.DataCell(ft.Text(m[2])),  # Referência da peça
                                     ft.DataCell(ft.Text(m[3])),  # Total de Entradas
                                     ft.DataCell(ft.Text(m[4])),  # Total de Saídas
-                                    ft.DataCell(
-                                        ft.Text(
-                                            ", ".join(
-                                                str(os_id)
-                                                for os_id in self.obter_ids_os_por_peca(
-                                                    m[0]
-                                                )
-                                            )
-                                        )
-                                    ),  # IDs das OSs
                                     ft.DataCell(ft.Text(m[3] - m[4])),  # Estoque Final
                                 ]
                             )
@@ -733,14 +723,13 @@ class OficinaApp:
                     p.nome, 
                     p.referencia,
                     COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'entrada' THEN mp.quantidade ELSE 0 END), 0) AS total_entradas,
-                    COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'saida' THEN mp.quantidade ELSE 0 END), 0) AS total_saidas,
-                    
+                    COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'saida' THEN mp.quantidade ELSE 0 END), 0) AS total_saidas
                 FROM 
                     pecas p
                 LEFT JOIN 
                     movimentacao_pecas mp ON p.id = mp.peca_id
                 GROUP BY
-                    p.id, p.nome, p.referencia;  
+                    p.id, p.nome, p.referencia; 
                 """
             )
             movimentacoes = cursor.fetchall()
