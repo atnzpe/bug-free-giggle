@@ -52,7 +52,7 @@ class OficinaApp:
         self.ordem_servico_formulario = OrdemServicoFormulario
         
         self.carregar_dados()
-       
+    
 
         self.oficina = Oficina()
         self.usuario_atual = None
@@ -153,12 +153,19 @@ class OficinaApp:
                 on_click=self.abrir_modal_saldo_estoque,
                 disabled=True,
             ),
-            # Visualiza o Saldo de Estoque
+            # Gera uma Ordem de Serviço
             "ordem_servico": ft.ElevatedButton(
                 "Criar Ordem de Serviço",
                 on_click=self.ordem_servico_formulario.abrir_modal_os ,
                 disabled=True,
             ),
+            # Relatórios
+            "relatorio": ft.ElevatedButton(
+                "RELATÓRIOS",
+                on_click=self.abrir_modal_relatorio,
+                disabled=True,
+            ),
+            
             # Sair do App
             "sair": ft.ElevatedButton("Sair", on_click=self.sair_do_app),
         }
@@ -813,70 +820,12 @@ class OficinaApp:
 
     
 
-    def fechar_modal_os(self, e):
-        """Fecha o modal de ordem de serviço."""
-        self.modal_ordem_servico.open = False
-        self.page.update()
-
+    
     
 
     
 
-    def gerar_pdf_os(self, ordem_servico_id):
-        try:
-            cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-            placa_carro = self.carro_dropdown.value
-            data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
-            nome_arquivo = f"{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
-            caminho_pasta = "Histórico"
-            os.makedirs(caminho_pasta, exist_ok=True)
-            caminho_arquivo = os.path.join(caminho_pasta, nome_arquivo)
-
-            doc = SimpleDocTemplate(
-                caminho_arquivo,
-                pagesize=letter,
-                title=f"Ordem de Serviço - Nº {ordem_servico_id}",
-            )
-            conteudo = []
-            estilos = getSampleStyleSheet()
-            conteudo.append(
-                Paragraph(
-                    f"Ordem de Serviço - Nº {ordem_servico_id}",
-                    estilos["Heading1"],
-                )
-            )
-            conteudo.append(Spacer(1, 12))
-            conteudo.append(Paragraph(f"Cliente: {cliente_nome}", estilos["Normal"]))
-            conteudo.append(
-                Paragraph(f"Placa do Carro: {placa_carro}", estilos["Normal"])
-            )
-            conteudo.append(
-                Paragraph(
-                    f"Data de Criação: {data_hora_criacao}",
-                    estilos["Normal"],
-                )
-            )
-            conteudo.append(Spacer(1, 12))
-            for peca in self.ordem_servico_formulario.pecas_selecionadas:
-                conteudo.append(
-                    Paragraph(
-                        f"- {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}",
-                        estilos["Normal"],
-                    )
-                )
-            conteudo.append(Spacer(1, 12))
-            conteudo.append(
-                Paragraph(
-                    f"Valor Total: R$ {sum(peca['valor_total'] for peca in self.pecas_selecionadas):.2f}",
-                    estilos["Heading3"],
-                )
-            )
-
-            doc.build(conteudo)
-
-            print(f"PDF da OS gerado com sucesso em: {caminho_arquivo}")
-        except Exception as e:
-            print(f"Erro ao gerar PDF da OS: {e}")
+    
 
     # =============================
     # SAIR DO APLICATIVO
