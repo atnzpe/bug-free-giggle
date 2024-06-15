@@ -444,7 +444,7 @@ class OrdemServicoFormulario(UserControl):
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
             placa_carro = self.carro_dropdown.value.replace(":","").replace(",","")
             data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
-            nome_arquivo = f"{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
+            nome_arquivo = f"OS{ordem_servico_id}_{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
             caminho_pasta = "Histórico"
             os.makedirs(caminho_pasta, exist_ok=True)
             caminho_arquivo = os.path.join(caminho_pasta, nome_arquivo)
