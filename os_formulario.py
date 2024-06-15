@@ -53,12 +53,12 @@ class OrdemServicoFormulario(UserControl):
         
         # Inicializa os atributos no construtor
         self.carro_dropdown_os = ft.Dropdown(width=300)
-        self.clientes_dropdown = ft.Dropdown(width=300)
+        self.clientes_dropdown = ft.Dropdown(width=150)
         self.evento_clientes_carregados = threading.Event()
 
         # Define a conexão como atributo da instancia
         self.conexao = criar_conexao(nome_banco_de_dados)
-
+        
         try:
             with criar_conexao(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
@@ -77,6 +77,31 @@ class OrdemServicoFormulario(UserControl):
 
         self.clientes_dropdown = ft.Dropdown(width=300)
         self.evento_clientes_carregados = threading.Event()
+        
+        self.cliente_dropdown = ft.Dropdown(
+            width=150,
+            options=[
+                ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                for cliente in self.clientes
+            ],
+            on_change=self.cliente_alterado,
+        )
+        self.carro_dropdown = ft.Dropdown(width=300)
+        self.peca_dropdown = ft.Dropdown(
+            width=150,
+            options=[ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas],
+        )
+        self.preco_unitario_field = ft.TextField(
+            label="Digite o Preço", width=100, value="0.00"
+        )
+        self.quantidade_field = ft.TextField(label="Digite a QTD", width=100, value="1")
+        self.adicionar_peca_button = ft.ElevatedButton(
+            "Adicionar Peça", on_click=self.adicionar_peca
+        )
+        self.pecas_list_view = ft.ListView(expand=True, height=200)
+        self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
+
+        
         
     def build(self):
         self.cliente_dropdown = ft.Dropdown(
@@ -158,7 +183,62 @@ class OrdemServicoFormulario(UserControl):
     def abrir_modal_os(self, e):
             """Abre o modal para criar uma nova ordem de serviço."""
             self.limpar_campos_os()
-            self.page.dialog = self.oficina_app.modal_ordem_servico
+            
+            # Criar o AlertDialog diretamente dentro do método abrir_modal_os
+            self.modal_ordem_servico = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Criar Ordem de Serviço"),
+            content=ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Text("Cliente:", width=100),
+                            self.cliente_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Carro:", width=100),
+                            self.carro_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Peça:", width=100),
+                            self.peca_dropdown,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Preço Unitário:", width=100),
+                            self.preco_unitario_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Quantidade:", width=100),
+                            self.quantidade_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            self.adicionar_peca_button,
+                        ],
+                    ),
+                    self.pecas_list_view,
+                    self.valor_total_text,
+                ]
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
+                ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        
+            
+            
+            self.page.dialog = self.modal_ordem_servico
             self.modal_ordem_servico.open = True
             self.page.update()
             
@@ -230,7 +310,7 @@ class OrdemServicoFormulario(UserControl):
             with criar_conexao(nome_banco_de_dados) as conexao:
                 self.carros = obter_carros_por_cliente(conexao, cliente_id)
             self.carro_dropdown.options = [
-                ft.dropdown.Option(f"{carro[1]}") for carro in self.carros
+                ft.dropdown.Option(f"{carro[1]} (ID: {carro[0]}, Placa: {carro[4]})") for carro in self.carros
             ]
         self.carro_dropdown.value = None
         self.page.update()
@@ -288,15 +368,10 @@ class OrdemServicoFormulario(UserControl):
 
         try:
             cliente_id = int(
-                self.cliente_dropdown.value.split(" (ID: ")[1][
-                    :-1
-                ]
+                self.cliente_dropdown.value.split(" (ID: ")[1][:-1]
             )
-            carro_id = int(
-                self.carro_dropdown.value.split(" (ID: ")[1][
-                    :-1
-                ]
-            )
+            # Extrair o ID do carro do valor do dropdown (ajustado para a nova formatação)
+            carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1].split(",")[0])
 
             # Imprime o conteúdo das listas antes do loop (apenas para debug)
             print("self.pecas_selecionadas:", self.pecas_selecionadas)
@@ -309,11 +384,11 @@ class OrdemServicoFormulario(UserControl):
 
                 # Utiliza enumerate para obter o índice e o valor de self.pecas
                 for indice, peca in enumerate(self.pecas):
-                    # CORREÇÃO: Compara com peca_selecionada['id'], não com o índice
+                    # CORREÇÃO: Compara com peca_selecionada['nome'], não com peca[0]
                     print(
-                        f"Comparando peca_selecionada['id'] ({peca_selecionada['id']}) com peca[{indice}][0] ({peca[0]})"
+                        f"Comparando peca_selecionada['nome'] ({peca_selecionada['nome']}) com peca[{indice}][1] ({peca[1]})"
                     )
-                    if peca[0] == peca_selecionada["id"]:
+                    if peca[1] == peca_selecionada["nome"]:
                         peca_id = peca[0]
                         pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
                         print(

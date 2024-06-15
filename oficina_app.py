@@ -49,26 +49,28 @@ class OficinaApp:
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.cliente_selecionado = None
         self.carro_selecionado = None
+        self.ordem_servico_formulario = OrdemServicoFormulario
         
-        self.ordem_servico_formulario = OrdemServicoFormulario()
         self.carregar_dados()
-        self.build_ui()
+       
 
         self.oficina = Oficina()
         self.usuario_atual = None
         self.cliente_selecionado = None
-        self.clientes_dropdown = []
-        self.formulario_os = OrdemServicoFormulario(self)  # Mova para cá!
-        self.formulario_os.pack()
-        self._criar_interface()
+        self.clientes_dropdown = ft.Dropdown(width=300)  
+        
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
         conexao_db = criar_conexao(nome_banco_de_dados)
         conexao = conexao_db
         self.conexao = criar_conexao(nome_banco_de_dados)
+        
+        # Carregue os dados primeiro
+        self.pecas, self.clientes = self.carregar_dados()
 
+        # Inicializa o formulario_os com os argumentos necessários
         self.ordem_servico_formulario = OrdemServicoFormulario(
-            self.page, self, self.carregar_dados() # Carrega os dados aqui
+            self.page, self, self.pecas, self.clientes
         )
         
         # Carrega o Dropdown ao Iniciar
@@ -77,6 +79,7 @@ class OficinaApp:
         # Chama a Função de criar usuario Admin
         criar_usuario_admin(conexao)
 
+        self.build_ui()
         # Criar OrdemServicoFormulario passando self.pecas como argumento
         self.ordem_servico_formulario = OrdemServicoFormulario(
             self.page, self, self.pecas,  self.clientes
@@ -762,9 +765,10 @@ class OficinaApp:
 
     def carregar_dados(self):
         with criar_conexao(nome_banco_de_dados) as conexao:
-            self.clientes = obter_clientes(conexao)
-            self.carros = []  # Inicialmente vazio
-            self.pecas = obter_pecas(conexao)
+            clientes = obter_clientes(conexao)
+            carros = []  # Inicialmente vazio
+            pecas = obter_pecas(conexao)
+            return pecas, clientes  # Retorne pecas e clientes
 
     def build_ui(self):
         
@@ -776,7 +780,7 @@ class OficinaApp:
         self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
-            content=self.formulario_os,  # Referenciar o formulário aqui
+            content=self.ordem_servico_formulario, # Referenciar o formulário aqui
             actions=[
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
                 ft.TextButton("Criar OS", on_click=self.criar_ordem_servico),
