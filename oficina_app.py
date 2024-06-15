@@ -667,6 +667,7 @@ class OficinaApp:
                             ft.DataColumn(ft.Text("Referência")),
                             ft.DataColumn(ft.Text("Total de Entradas")),
                             ft.DataColumn(ft.Text("Total de Saídas")),
+                            ft.DataColumn(ft.Text("ID da OS (Saída)")),
                             ft.DataColumn(ft.Text("Estoque Final")),
                         ],
                         rows=[
@@ -676,6 +677,9 @@ class OficinaApp:
                                     ft.DataCell(ft.Text(m[2])),  # Referência da peça
                                     ft.DataCell(ft.Text(m[3])),  # Total de Entradas
                                     ft.DataCell(ft.Text(m[4])),  # Total de Saídas
+                                    ft.DataCell(
+                                        ft.Text(m[5] if m[5] is not None else "")
+                                    ),  # ID da OS
                                     ft.DataCell(ft.Text(m[3] - m[4])),  # Estoque Final
                                 ]
                             )
@@ -709,13 +713,14 @@ class OficinaApp:
                     p.nome, 
                     p.referencia,
                     COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'entrada' THEN mp.quantidade ELSE 0 END), 0) AS total_entradas,
-                    COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'saida' THEN mp.quantidade ELSE 0 END), 0) AS total_saidas
+                    COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'saida' THEN mp.quantidade ELSE 0 END), 0) AS total_saidas,
+                    mp.ordem_servico_id  -- Inclui o ID da ordem de serviço
                 FROM 
                     pecas p
                 LEFT JOIN 
                     movimentacao_pecas mp ON p.id = mp.peca_id
                 GROUP BY
-                    p.id, p.nome, p.referencia;
+                    p.id, p.nome, p.referencia, mp.ordem_servico_id;  -- Agrupa por ID da OS
                 """
             )
             movimentacoes = cursor.fetchall()

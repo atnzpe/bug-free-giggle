@@ -59,6 +59,10 @@ class OrdemServicoFormulario(UserControl):
         # Define a conexão como atributo da instancia
         self.conexao = criar_conexao(nome_banco_de_dados)
         
+        self.clientes_dropdown = ft.Dropdown(
+            width=300,
+            options=[],
+        )
         try:
             with criar_conexao(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
