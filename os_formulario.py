@@ -13,6 +13,13 @@ from flet import (
     colors,
     ListView,
 )
+import urllib.parse
+import os
+from datetime import datetime
+
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 import threading
 import sqlite3
 import bcrypt
@@ -435,6 +442,7 @@ class OrdemServicoFormulario(UserControl):
             self.fechar_modal_os(e)
             self.limpar_campos_os()
             ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
+            self.gerar_link_whatsapp(ordem_servico_id)
             self.page.show_snack_bar(ft.snack_bar)
 
         except ValueError as e:
@@ -446,7 +454,56 @@ class OrdemServicoFormulario(UserControl):
             print(f"Erro ao criar ordem de serviço: {e}")
             ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
             self.page.show_snack_bar(ft.snack_bar)
+            
+    def gerar_link_whatsapp(self, ordem_servico_id):
+        try:
+            cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+            placa_carro = self.carro_dropdown.value.replace(":", "").replace(",", "")
 
+            # Buscar o número de telefone do cliente (você precisa implementar buscar_numero_cliente)
+            
+            numero_telefone = self.buscar_numero_cliente(cliente_nome)
+
+            if numero_telefone:
+                mensagem = f"Olá {cliente_nome}! Sua ordem de serviço nº {ordem_servico_id} para o veículo com placa {placa_carro} foi gerada com sucesso!"
+                texto_codificado = urllib.parse.quote(mensagem)
+                link_whatsapp = f"https://web.whatsapp.com/send?phone={numero_telefone}&text={texto_codificado}"
+                return link_whatsapp
+            else:
+                print(f"Número de telefone não encontrado para o cliente: {cliente_nome}")
+                return None
+        except Exception as e:
+            print(f"Erro ao gerar link do WhatsApp: {e}")
+            return None
+
+    def buscar_numero_cliente(conexao, cliente_nome):
+        """
+        Busca o número de telefone de um cliente pelo nome.
+
+        Args:
+            conexao: A conexão com o banco de dados SQLite.
+            cliente_nome (str): O nome do cliente.
+
+        Returns:
+            str: O número de telefone do cliente ou None se não encontrado.
+        """
+        try:
+            conexao = criar_conexao(nome_banco_de_dados)
+            cursor = conexao.cursor()
+            cursor.execute(
+                "SELECT telefone FROM clientes WHERE nome = ?", (cliente_nome,)
+            )
+            resultado = cursor.fetchone()
+
+            if resultado:
+                return resultado[0]
+            else:
+                return None
+
+        except sqlite3.Error as e:
+            print(f"Erro ao buscar número do cliente: {e}")
+            return None
+        
     def gerar_pdf_os(self, ordem_servico_id):
         try:
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
