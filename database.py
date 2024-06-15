@@ -390,6 +390,31 @@ def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
         print(f"Erro em quantidade_em_estoque_suficiente: {e}")
         return False
 
+# database.py
+
+def inserir_movimentacao_peca(conexao, peca_id, tipo_movimentacao, quantidade, ordem_servico_id):
+    """
+       Insere uma nova movimentação de peça no banco de dados.
+
+       Args:
+           conexao: A conexão com o banco de dados.
+           peca_id: O ID da peça.
+           tipo_movimentacao: 'entrada' ou 'saida'.
+           quantidade: A quantidade da peça movimentada.
+           ordem_servico_id: O ID da ordem de serviço (se aplicável).
+       """
+    try:
+        cursor = conexao.cursor()
+        cursor.execute(
+            """
+            INSERT INTO movimentacao_pecas (peca_id, tipo_movimentacao, quantidade, ordem_servico_id)
+            VALUES (?, ?, ?, ?)
+            """,
+            (peca_id, tipo_movimentacao, quantidade, ordem_servico_id),
+        )
+        conexao.commit()
+    except Exception as e:
+        print(f"Erro em inserir_movimentacao_peca: {e}")
 
 if __name__ == "__main__":
     conexao = criar_conexao("./data/oficina_guarulhos.db")

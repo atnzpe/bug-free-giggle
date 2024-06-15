@@ -36,6 +36,7 @@ from database import (
     inserir_ordem_servico,
     atualizar_estoque_peca,
     quantidade_em_estoque_suficiente,
+    inserir_movimentacao_peca,
     nome_banco_de_dados,
     fila_db,
 )
@@ -422,10 +423,11 @@ class OrdemServicoFormulario(UserControl):
                     conexao, cliente_id, carro_id, pecas_quantidades, valor_total_os
                 )
 
-                # Atualizar o estoque APÓS criar a OS com sucesso
+                # Atualizar estoque e registrar movimentação após criar a OS
                 if ordem_servico_id is not None:
                     for peca_id, quantidade in pecas_quantidades.items():
                         atualizar_estoque_peca(conexao, peca_id, -quantidade)
+                        inserir_movimentacao_peca(conexao,peca_id,'saida', quantidade, ordem_servico_id)
 
             self.gerar_pdf_os(ordem_servico_id)
             self.fechar_modal_os(e)
