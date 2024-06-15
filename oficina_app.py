@@ -667,7 +667,6 @@ class OficinaApp:
                             ft.DataColumn(ft.Text("Referência")),
                             ft.DataColumn(ft.Text("Total de Entradas")),
                             ft.DataColumn(ft.Text("Total de Saídas")),
-                            ft.DataColumn(ft.Text("ID da OS (Saída)")),
                             ft.DataColumn(ft.Text("Estoque Final")),
                         ],
                         rows=[
@@ -678,8 +677,15 @@ class OficinaApp:
                                     ft.DataCell(ft.Text(m[3])),  # Total de Entradas
                                     ft.DataCell(ft.Text(m[4])),  # Total de Saídas
                                     ft.DataCell(
-                                        ft.Text(m[5] if m[5] is not None else "")
-                                    ),  # ID da OS
+                                        ft.Text(
+                                            ", ".join(
+                                                str(os_id)
+                                                for os_id in self.obter_ids_os_por_peca(
+                                                    m[0]
+                                                )
+                                            )
+                                        )
+                                    ),  # IDs das OSs
                                     ft.DataCell(ft.Text(m[3] - m[4])),  # Estoque Final
                                 ]
                             )
@@ -697,6 +703,20 @@ class OficinaApp:
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
+        
+    def obter_ids_os_por_peca(self, peca_id):
+        """Retorna uma lista de IDs de OSs onde a peça foi utilizada."""
+        with sqlite3.connect(nome_banco_de_dados) as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                """
+                SELECT DISTINCT ordem_servico_id 
+                FROM movimentacao_pecas 
+                WHERE peca_id = ? AND tipo_movimentacao = 'saida'
+                """,
+                (peca_id,),
+            )
+            return [row[0] for row in cursor.fetchall() if row[0] is not None]
 
     # Carrega os dados de movimentação de peças do banco de dados,
     # calculando o saldo final para cada peça
@@ -714,13 +734,13 @@ class OficinaApp:
                     p.referencia,
                     COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'entrada' THEN mp.quantidade ELSE 0 END), 0) AS total_entradas,
                     COALESCE(SUM(CASE WHEN mp.tipo_movimentacao = 'saida' THEN mp.quantidade ELSE 0 END), 0) AS total_saidas,
-                    mp.ordem_servico_id  -- Inclui o ID da ordem de serviço
+                    
                 FROM 
                     pecas p
                 LEFT JOIN 
                     movimentacao_pecas mp ON p.id = mp.peca_id
                 GROUP BY
-                    p.id, p.nome, p.referencia, mp.ordem_servico_id;  -- Agrupa por ID da OS
+                    p.id, p.nome, p.referencia;  
                 """
             )
             movimentacoes = cursor.fetchall()
