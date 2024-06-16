@@ -476,7 +476,7 @@ class OrdemServicoFormulario(UserControl):
             print(f"Erro ao gerar link do WhatsApp: {e}")
             return None
 
-    def buscar_numero_cliente(conexao, cliente_nome):
+    def buscar_numero_cliente(self, cliente_nome):
         """
         Busca o número de telefone de um cliente pelo nome.
 
@@ -488,8 +488,8 @@ class OrdemServicoFormulario(UserControl):
             str: O número de telefone do cliente ou None se não encontrado.
         """
         try:
-            conexao = criar_conexao(nome_banco_de_dados)
-            cursor = conexao.cursor()
+            
+            cursor = self.conexao.cursor()
             cursor.execute(
                 "SELECT telefone FROM clientes WHERE nome = ?", (cliente_nome,)
             )
