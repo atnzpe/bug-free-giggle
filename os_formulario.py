@@ -272,9 +272,9 @@ class OrdemServicoFormulario(UserControl):
         
             
             
-            self.page.dialog = self.modal_ordem_servico
-            self.modal_ordem_servico.open = True
-            self.page.update()
+        self.page.dialog = self.modal_ordem_servico
+        self.modal_ordem_servico.open = True
+        self.page.update()
             
     def limpar_campos_os(self):
         """Limpa os campos do modal de ordem de serviço."""
