@@ -43,6 +43,7 @@ from database import (
 
 from editar_cliente import EditarCliente
 
+
 class OficinaApp:
 
     def __init__(self, page: ft.Page):
@@ -52,7 +53,7 @@ class OficinaApp:
         self.cliente_selecionado = None
         self.carro_selecionado = None
         self.ordem_servico_formulario = OrdemServicoFormulario
-        self.editarcliente = EditarCliente
+        
 
         self.carregar_dados()
 
@@ -66,7 +67,7 @@ class OficinaApp:
         conexao_db = criar_conexao(nome_banco_de_dados)
         conexao = conexao_db
         self.conexao = criar_conexao(nome_banco_de_dados)
-
+        
         # Carregue os dados primeiro
         self.pecas, self.clientes = self.carregar_dados()
 
@@ -80,6 +81,8 @@ class OficinaApp:
 
         # Chama a Função de criar usuario Admin
         criar_usuario_admin(conexao)
+        
+        
 
         self.build_ui()
         # Criar OrdemServicoFormulario passando self.pecas como argumento
@@ -125,7 +128,11 @@ class OficinaApp:
         self.modal_cadastro_carro.content.controls.insert(0, self.modelo_input)
         self.modal_cadastro_carro.content.controls.insert(0, self.clientes_dropdown)
 
-    # Botões da Tela Inicial
+        self.editarcliente = EditarCliente(page, self,self.clientes)
+
+    # Botões da Tela Inici
+    # 
+    # al
     def build(self):
         self.botoes = {
             # Botão de Login
@@ -140,11 +147,10 @@ class OficinaApp:
                 "Cadastrar Carro",
                 on_click=self.abrir_modal_cadastro_carro,
                 disabled=True,
-            ),
-            # Botão Editar Cliente
+            ),# Botão Editar Cliente
             "editar_cliente": ft.ElevatedButton(
                 "Pesquisar / Editar Cliente",
-                on_click=self.editarcliente.abrir_modal_pesquisar_cliente(e=None),
+                on_click=self.editarcliente.abrir_modal_pesquisar_cliente,  # Lambda salva o dia!
                 disabled=True,
             ),
             # Botão Cadastrar Peças

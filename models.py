@@ -101,7 +101,7 @@ class Oficina:
             return Cliente(*cliente_data[1:])  # Cria um objeto Cliente com os dados
         return None
 
-    def atualizar_cliente(self, nome, telefone, email):
+    def atualizar_cliente(self, cliente_id, nome, telefone, email):
         """
         Atualiza os dados de um cliente existente.
 
@@ -117,8 +117,8 @@ class Oficina:
             conexao_db = criar_conexao(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
-                "UPDATE clientes SET telefone=?, email=? WHERE nome=?",
-                (telefone, email, nome),
+                "UPDATE clientes SET nome=?, telefone=?, email=? WHERE nome=?",
+                (nome,telefone, email, cliente_id),
             )
             conexao_db.commit()
             return True

@@ -71,7 +71,7 @@ class EditarCliente(UserControl):
         self.evento_clientes_carregados = threading.Event()
         
         self.conexao = criar_conexao(nome_banco_de_dados)
-
+        #self.editarcliente = EditarCliente(page, self,self.clientes)
 
         try:
             with criar_conexao(nome_banco_de_dados) as conexao:
@@ -361,25 +361,12 @@ class EditarCliente(UserControl):
         email = self.campo_email.value
 
         try:
-            with sqlite3.connect(nome_banco_de_dados) as conexao:
-                cursor = conexao.cursor()
-
-                # Atualiza os dados do cliente no banco de dados
-                cursor.execute(
-                    "UPDATE clientes SET nome=?, telefone=?, endereco=?, email=? WHERE id=?",
-                    (
-                        nome,
-                        telefone,
-                        endereco,
-                        email,
-                        self.cliente_selecionado.id,
-                    ),
-                )
-                conexao.commit()
-
-            self.fechar_modal(e)
-            self.page.update()
-            self.mostrar_alerta("Cliente atualizado com sucesso!")
+            if self.oficina_app.oficina.atualizar_cliente(self.cliente_selecionado.id, nome, telefone, email):
+                self.fechar_modal(e)
+                self.page.update()
+                self.mostrar_alerta("Cliente atualizado com sucesso!")
+            else:
+                self.mostrar_alerta("Erro ao atualizar os dados do cliente!")
 
         except sqlite3.IntegrityError as e:
             print(f"Erro de integridade do banco de dados: {e}")
