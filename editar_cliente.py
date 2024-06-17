@@ -280,6 +280,17 @@ class EditarCliente(UserControl):
         self.fechar_modal(e)  # Fecha o modal de pesquisa
 
         # Crie as referências para os campos TextField
+        
+
+    def abrir_modal_editar_cliente(self, e, cliente):
+        """Abre o modal para editar os dados do cliente e seus carros."""
+        # Crie o Dropdown de clientes
+        # Movendo carregar_clientes_no_dropdown para dentro da classe EditarCliente
+        self.cliente_selecionado = cliente
+
+        # 1. Carregar o dropdown de clientes
+        #self.carregar_clientes_no_dropdown()
+        
         self.campo_nome = ft.TextField(label="Nome", value=cliente.nome)
         self.campo_telefone = ft.TextField(label="Telefone", value=cliente.telefone)
         self.campo_endereco = ft.TextField(label="Endereço", value=cliente.endereco)
@@ -325,13 +336,7 @@ class EditarCliente(UserControl):
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
-
-    def abrir_modal_editar_cliente(self, e, cliente):
-        """Abre o modal para editar os dados do cliente e seus carros."""
-        # Crie o Dropdown de clientes
-        # Movendo carregar_clientes_no_dropdown para dentro da classe EditarCliente
-        self.cliente_selecionado = cliente
-
+        
     # Função para carregar os carros associados a um cliente do banco de dados.
     def carregar_carros_cliente(self, cliente_id):
         """
