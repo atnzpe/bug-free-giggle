@@ -51,27 +51,38 @@ from database import (
     inserir_movimentacao_peca,
     nome_banco_de_dados,
     fila_db,
+    atualizar_carro,
 )
 
 
-
 class EditarCliente(UserControl):
-    
-    '''
+    """
     Classe criada poara editar cliente
-    '''
+    """
     
-    def __init__(self, page, oficina_app,clientes):
+    def carregar_clientes(self):
+        """Carrega os clientes do banco de dados."""
+        try:
+            with self.conexao as conexao:
+                cursor = conexao.cursor()
+                cursor.execute("SELECT id, nome FROM clientes")
+                clientes = cursor.fetchall()
+                return clientes  # Retorna a lista de clientes
+        except Exception as e:
+            print(f"Erro ao carregar clientes: {e}")
+            return []  # Retorna uma lista vazia em caso de erro
+
+    def __init__(self, page, oficina_app, cliente,carregar_clientes):
         self.page = page
-        self.oficina_app = oficina_app 
-        self.oficina = Oficina()       
-        #self.page.pubsub.subscribe(self.oficina._on_message)       
+        self.oficina_app = oficina_app
+        self.oficina = Oficina()
+        # self.page.pubsub.subscribe(self.oficina._on_message)
         # Inicializa os atributos no construtor
         self.clientes_dropdown = ft.Dropdown(width=150)
         self.evento_clientes_carregados = threading.Event()
-        
+
         self.conexao = criar_conexao(nome_banco_de_dados)
-        #self.editarcliente = EditarCliente(page, self,self.clientes)
+        # self.editarcliente = EditarCliente(page, self,self.clientes)
 
         try:
             with criar_conexao(nome_banco_de_dados) as conexao:
@@ -89,18 +100,24 @@ class EditarCliente(UserControl):
         except Exception as e:
             print(f"Erro ao carregar clientes no dropdown: {e}")
         # Carregue os dados primeiro
-        
 
         self.clientes_dropdown = []
-    
-    
+        
+        
+          # Armazena a função como um atributo
+        self.carregar_clientes = carregar_clientes
+        self.clientes = self.carregar_clientes()  # Chama a função para carregar os clientes
+
     def build(self):
-    # ... outros controles ...
-        botao_pesquisar = ft.ElevatedButton("Pesquisar Cliente", on_click=self.abrir_modal_pesquisar_cliente) 
-    #==================
+        # ... outros controles ...
+        botao_pesquisar = ft.ElevatedButton(
+            "Pesquisar Cliente", on_click=self.abrir_modal_pesquisar_cliente
+        )
+
+    # ==================
     # UTILIDADES
-    #==================
-    
+    # ==================
+
     def fechar_modal(self, e):
         """Fecha qualquer modal aberto."""
         self.page.dialog.open = False
@@ -110,23 +127,23 @@ class EditarCliente(UserControl):
         """Exibe um alerta em um Modal (AlertDialog)."""
         dlg = ft.AlertDialog(
             modal=True,
-                title=ft.Text("ATENÇÃO"),
-                content=ft.Text(mensagem),
-                actions=[
-                    # usa a mesma função fechar_modal
-                    ft.TextButton("OK", on_click=self.fechar_modal)
-                ],
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
-        
+            title=ft.Text("ATENÇÃO"),
+            content=ft.Text(mensagem),
+            actions=[
+                # usa a mesma função fechar_modal
+                ft.TextButton("OK", on_click=self.fechar_modal)
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
         self.page.dialog = dlg  # Atribui o diálogo diretamente
         dlg.open = True
         self.page.update()
-        
+
     # Abre o modal de pesquisa e prepara para exibir os resultados.
     def abrir_modal_pesquisar_cliente(self, e):
         self.pesquisar_cliente(e)
-    
+
     def pesquisar_cliente(self, e):
         """Abre o modal de pesquisa e prepara para exibir os resultados."""
 
@@ -231,13 +248,7 @@ class EditarCliente(UserControl):
             )
             resultados = cursor.fetchall()
         return resultados  # Retorna uma lista de tuplas (modelo, ano, cor, placa)
-    
-    
-    
-    
-    
-    
-        
+
     def abrir_edicao_cliente(self, e):
         """Abre um modal para editar os dados do cliente."""
         self.fechar_modal(e)  # Fecha o diálogo de confirmação
@@ -266,17 +277,18 @@ class EditarCliente(UserControl):
         dlg.open = True
         self.page.update()
 
-    
+    # Abre o modal de pesquisa e prepara para exibir os resultados.
 
-    
-    
-
-    #Abre o modal de pesquisa e prepara para exibir os resultados.
-    
-
-    #Abre o modal para editar os dados do cliente e seus carros.
+    # Abre o modal para editar os dados do cliente e seus carros.
     def abrir_modal_editar_cliente(self, e, cliente):
         """Abre o modal para editar os dados do cliente e seus carros."""
+        # Crie o Dropdown de clientes
+        self.cliente_selecionado = cliente
+        self.fechar_modal(e)  # Fecha o modal de pesquisa
+
+        # Adicione o Dropdown ao conteúdo do modal
+        dlg.content.controls.append(self.clientes_dropdown)
+
         self.cliente_selecionado = cliente
         self.fechar_modal(e)  # Fecha o modal de pesquisa
 
@@ -301,27 +313,30 @@ class EditarCliente(UserControl):
             hint_text="Carros do Cliente",
         )
 
-        dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Editar Cliente"),
-            content=ft.Column(
-                [
-                    self.campo_nome,
-                    self.campo_telefone,
-                    self.campo_endereco,
-                    self.campo_email,
-                    self.carros_dropdown,
-                ]
-            ),
-            actions=[
-                ft.TextButton("Cancelar", on_click=self.fechar_modal),
-                ft.ElevatedButton("Salvar", on_click=self.salvar_edicao_cliente),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        self.page.dialog = dlg
-        dlg.open = True
-        self.page.update()
+        if self.carros_dropdown.options == []:
+            dlg = ft.AlertDialog(
+                modal=True,
+                title=ft.Text("Editar Cliente"),
+                content=ft.Column(
+                    [
+                        self.campo_nome,
+                        self.campo_telefone,
+                        self.campo_endereco,
+                        self.campo_email,
+                        self.carros_dropdown,
+                    ]
+                ),
+                actions=[
+                    ft.TextButton("Cancelar", on_click=self.fechar_modal),
+                    ft.ElevatedButton("Salvar", on_click=self.salvar_edicao_cliente),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+            dlg.content.controls.append(self.clientes_dropdown)
+            
+            self.page.dialog = dlg
+            dlg.open = True
+            self.page.update()
 
     # Função para carregar os carros associados a um cliente do banco de dados.
     def carregar_carros_cliente(self, cliente_id):
@@ -347,9 +362,15 @@ class EditarCliente(UserControl):
             carros.append(carro)
         return carros
 
-    #Salva as edições do cliente no banco de dados.
+    # Salva as edições do cliente no banco de dados.
     def salvar_edicao_cliente(self, e):
         """Salva as edições do cliente no banco de dados."""
+
+        # Obtenha o ID do novo dono do carro a partir do Dropdown
+        novo_dono_id = None
+        if self.clientes_dropdown.value:
+            novo_dono_id = int(self.clientes_dropdown.value.split(" (ID: ")[1][:-1])
+
         if not self.cliente_selecionado:
             self.mostrar_alerta("Nenhum cliente selecionado para edição.")
             return
@@ -361,7 +382,9 @@ class EditarCliente(UserControl):
         email = self.campo_email.value
 
         try:
-            if self.oficina_app.oficina.atualizar_cliente(self.cliente_selecionado.id, nome, telefone, email):
+            if self.oficina_app.oficina.atualizar_cliente(
+                self.cliente_selecionado.id, nome, telefone, email
+            ):
                 self.fechar_modal(e)
                 self.page.update()
                 self.mostrar_alerta("Cliente atualizado com sucesso!")
@@ -383,7 +406,7 @@ class EditarCliente(UserControl):
             self.mostrar_alerta(f"Ocorreu um erro inesperado. Detalhes: {e}")
 
         self.page.update()
-        
+
     def confirmar_edicao_cliente(self, e):
         """Confirma a edição dos dados do cliente."""
         dlg = self.page.dialog
@@ -398,7 +421,3 @@ class EditarCliente(UserControl):
             self.mostrar_alerta("Erro ao atualizar os dados do cliente!")
 
         self.page.update()
-    
-    
-    
-          

@@ -128,8 +128,8 @@ class OficinaApp:
         self.modal_cadastro_carro.content.controls.insert(0, self.modelo_input)
         self.modal_cadastro_carro.content.controls.insert(0, self.clientes_dropdown)
 
-        self.editarcliente = EditarCliente(page, self,self.clientes)
-
+        self.editarcliente = EditarCliente(page, self,self.carregar_clientes_no_dropdown)
+        
     # Botões da Tela Inici
     # 
     # al

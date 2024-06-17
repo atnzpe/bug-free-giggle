@@ -298,7 +298,9 @@ def obter_pecas(conexao):
     return cursor.fetchall()
 
 
-def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades, valor_total):
+def inserir_ordem_servico(
+    conexao, cliente_id, carro_id, pecas_quantidades, valor_total
+):
     """
     Insere uma nova ordem de serviço no banco de dados.
 
@@ -315,17 +317,17 @@ def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades, valo
             "Peças e quantidades recebidas em inserir_ordem_servico:", pecas_quantidades
         )
         cursor = conexao.cursor()
-        
-        #Obtem a Dta e Hora
+
+        # Obtem a Dta e Hora
         data_hora = datetime.now()
-        
+
         # Inserir a ordem de serviço com data_hora e valor_total
         cursor.execute(
             """
             INSERT INTO ordem_servico (cliente_id, carro_id, data_criacao, valor_total)
             VALUES (?, ?,?,?)
             """,
-            (cliente_id, carro_id, data_hora, valor_total ),
+            (cliente_id, carro_id, data_hora, valor_total),
         )
         ordem_servico_id = cursor.lastrowid
 
@@ -348,10 +350,13 @@ def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades, valo
         print(f"Erro em inserir_ordem_servico: {e}")
         return None
 
-#Atualiza o estoque da peça.
+
+# Atualiza o estoque da peça.
 def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
     try:
-        print(f"Atualizando estoque da peça {peca_id}. Quantidade utilizada: {quantidade_utilizada}")
+        print(
+            f"Atualizando estoque da peça {peca_id}. Quantidade utilizada: {quantidade_utilizada}"
+        )
         cursor = conexao.cursor()
         cursor.execute(
             """
@@ -364,6 +369,39 @@ def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
         conexao.commit()
     except Exception as e:
         print(f"Erro em atualizar_estoque_peca: {e}")
+
+
+def atualizar_carro(carro_id, cliente_id, conexao=None):
+    """
+    Atualiza o dono de um carro no banco de dados.
+
+    Args:
+        carro_id (int): O ID do carro a ser atualizado.
+        cliente_id (int): O ID do novo dono do carro.
+        conexao (opcional): Uma conexão existente com o banco de dados.
+        Se None, uma nova conexão será criada e fechada dentro da função.
+
+    Returns:
+        bool: True se a atualização for bem-sucedida, False caso contrário.
+    """
+    fechar_conexao = False
+    if conexao is None:
+        conexao = criar_conexao(nome_banco_de_dados)
+        fechar_conexao = True
+
+    try:
+        cursor = conexao.cursor()
+        cursor.execute(
+            "UPDATE carros SET cliente_id = ? WHERE id = ?", (cliente_id, carro_id)
+        )
+        conexao.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao atualizar o carro no banco de dados: {e}")
+        return False
+    finally:
+        if fechar_conexao:
+            conexao.close()
 
 
 def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
@@ -390,19 +428,23 @@ def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
         print(f"Erro em quantidade_em_estoque_suficiente: {e}")
         return False
 
+
 # database.py
 
-def inserir_movimentacao_peca(conexao, peca_id, tipo_movimentacao, quantidade, ordem_servico_id):
-    """
-       Insere uma nova movimentação de peça no banco de dados.
 
-       Args:
-           conexao: A conexão com o banco de dados.
-           peca_id: O ID da peça.
-           tipo_movimentacao: 'entrada' ou 'saida'.
-           quantidade: A quantidade da peça movimentada.
-           ordem_servico_id: O ID da ordem de serviço (se aplicável).
-       """
+def inserir_movimentacao_peca(
+    conexao, peca_id, tipo_movimentacao, quantidade, ordem_servico_id
+):
+    """
+    Insere uma nova movimentação de peça no banco de dados.
+
+    Args:
+        conexao: A conexão com o banco de dados.
+        peca_id: O ID da peça.
+        tipo_movimentacao: 'entrada' ou 'saida'.
+        quantidade: A quantidade da peça movimentada.
+        ordem_servico_id: O ID da ordem de serviço (se aplicável).
+    """
     try:
         cursor = conexao.cursor()
         cursor.execute(
@@ -415,6 +457,7 @@ def inserir_movimentacao_peca(conexao, peca_id, tipo_movimentacao, quantidade, o
         conexao.commit()
     except Exception as e:
         print(f"Erro em inserir_movimentacao_peca: {e}")
+
 
 if __name__ == "__main__":
     conexao = criar_conexao("./data/oficina_guarulhos.db")
