@@ -30,6 +30,10 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from flet import UserControl  # Certifique-se de importar os componentes necessários
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from io import BytesIO
+
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
@@ -82,7 +86,8 @@ class OrdemServicoFormulario(UserControl):
                 self.page.update()
         except Exception as e:
             print(f"Erro ao carregar clientes no dropdown: {e}")
-
+        # Carregue os dados primeiro
+        
         self.clientes_dropdown = ft.Dropdown(width=300)
         self.evento_clientes_carregados = threading.Event()
         
@@ -195,11 +200,26 @@ class OrdemServicoFormulario(UserControl):
         return self.modal_ordem_servico # Retornar o modal
         
     def abrir_modal_os(self, e):
-            """Abre o modal para criar uma nova ordem de serviço."""
-            self.limpar_campos_os()
+        """Abre o modal para criar uma nova ordem de serviço."""
+        self.limpar_campos_os()
             
-            # Criar o AlertDialog diretamente dentro do método abrir_modal_os
-            self.modal_ordem_servico = ft.AlertDialog(
+        # Carregar clientes do banco de dados aqui:
+        try:
+            with criar_conexao(nome_banco_de_dados) as conexao:
+                cursor = conexao.cursor()
+                cursor.execute("SELECT id, nome FROM clientes")
+                clientes = cursor.fetchall()
+
+                self.cliente_dropdown.options = [
+                    ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                    for cliente in clientes
+                ]
+
+        except Exception as e:
+            print(f"Erro ao carregar clientes no dropdown: {e}")
+            
+        # Criar o AlertDialog diretamente dentro do método abrir_modal_os
+        self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Column(
@@ -258,6 +278,8 @@ class OrdemServicoFormulario(UserControl):
             
     def limpar_campos_os(self):
         """Limpa os campos do modal de ordem de serviço."""
+        self.carregar_dados()
+        #self.carregar_carros_no_dropdown_os(e)
         self.cliente_dropdown.value = None
         self.carro_dropdown.options = []  # Limpa as opções de carros
         self.carro_dropdown.value = None
@@ -439,10 +461,10 @@ class OrdemServicoFormulario(UserControl):
                         inserir_movimentacao_peca(conexao,peca_id,'saida', quantidade, ordem_servico_id)
 
             self.gerar_pdf_os(ordem_servico_id)
+            self.gerar_link_whatsapp(ordem_servico_id)
             self.fechar_modal_os(e)
             self.limpar_campos_os()
             ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
-            self.gerar_link_whatsapp(ordem_servico_id)
             self.page.show_snack_bar(ft.snack_bar)
 
         except ValueError as e:
@@ -454,18 +476,42 @@ class OrdemServicoFormulario(UserControl):
             print(f"Erro ao criar ordem de serviço: {e}")
             ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
             self.page.show_snack_bar(ft.snack_bar)
+
+    def gerar_texto_os(self, ordem_servico_id):
+        """Gera o texto da ordem de serviço para ser usado na mensagem do WhatsApp."""
+
+        cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+        placa_carro = self.carro_dropdown.value.replace(":", "").replace(",", "")
+        data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        texto_os = f"Ordem de Serviço - Nº {ordem_servico_id}\n\n"
+        texto_os += f"Cliente: {cliente_nome}\n"
+        texto_os += f"Placa do Carro: {placa_carro}\n"
+        texto_os += f"Data de Criação: {data_hora_criacao}\n\n"
+
+        for peca in self.pecas_selecionadas:
+            texto_os += f"- Peça Utilizada: {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}\n"
+
+        texto_os += f"\nValor Total: R$ {sum(peca['valor_total'] for peca in self.pecas_selecionadas):.2f}"
+
+        return texto_os
             
     def gerar_link_whatsapp(self, ordem_servico_id):
         try:
+            
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
             placa_carro = self.carro_dropdown.value.replace(":", "").replace(",", "")
 
             # Buscar o número de telefone do cliente (você precisa implementar buscar_numero_cliente)
-            
-            numero_telefone = self.buscar_numero_cliente(cliente_nome)
+            if self.cliente_dropdown.value:
+                cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+                numero_telefone = self.buscar_numero_cliente(cliente_nome)
+            else:
+                print("Erro: Nenhum cliente selecionado no dropdown.")
+                return None
 
             if numero_telefone:
-                mensagem = f"Olá {cliente_nome}! Sua ordem de serviço nº {ordem_servico_id} para o veículo com placa {placa_carro} foi gerada com sucesso!"
+                mensagem = self.gerar_texto_os(ordem_servico_id)
                 texto_codificado = urllib.parse.quote(mensagem)
                 link_whatsapp = f"https://web.whatsapp.com/send?phone={numero_telefone}&text={texto_codificado}"
                 return link_whatsapp
@@ -487,9 +533,12 @@ class OrdemServicoFormulario(UserControl):
         Returns:
             str: O número de telefone do cliente ou None se não encontrado.
         """
+        print(f"Nome do cliente sendo buscado: '{cliente_nome}'")
         try:
             
             cursor = self.conexao.cursor()
+            consulta_sql = "SELECT telefone FROM clientes WHERE nome = ?"
+            print(f"Consulta SQL: {consulta_sql}, Parâmetros: {cliente_nome}")
             cursor.execute(
                 "SELECT telefone FROM clientes WHERE nome = ?", (cliente_nome,)
             )
