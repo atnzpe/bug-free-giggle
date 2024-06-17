@@ -23,7 +23,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from flet import UserControl  # Certifique-se de importar os componentes necessários
-
+from editar_cliente import EditarCliente # Importe a classe EditarCliente
 from os_formulario import OrdemServicoFormulario
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
@@ -128,7 +128,7 @@ class OficinaApp:
         self.modal_cadastro_carro.content.controls.insert(0, self.modelo_input)
         self.modal_cadastro_carro.content.controls.insert(0, self.clientes_dropdown)
 
-        self.editarcliente = EditarCliente(page, self,self.carregar_clientes_no_dropdown)
+        self.editarcliente = EditarCliente(page, self)
         
     # Botões da Tela Inici
     # 

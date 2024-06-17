@@ -1,3 +1,5 @@
+# editar_cliente.py
+
 from typing import Any
 from flet import Dropdown, dropdown  # Importa Dropdown e dropdown
 import flet as ft
@@ -23,17 +25,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 import threading
 import sqlite3
 
-
-from datetime import datetime
-import os
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from flet import UserControl  # Certifique-se de importar os componentes necessários
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
-from io import BytesIO
-
+# ... (Outras importações) ...
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 
@@ -59,20 +51,9 @@ class EditarCliente(UserControl):
     """
     Classe criada poara editar cliente
     """
-    
-    def carregar_clientes(self):
-        """Carrega os clientes do banco de dados."""
-        try:
-            with self.conexao as conexao:
-                cursor = conexao.cursor()
-                cursor.execute("SELECT id, nome FROM clientes")
-                clientes = cursor.fetchall()
-                return clientes  # Retorna a lista de clientes
-        except Exception as e:
-            print(f"Erro ao carregar clientes: {e}")
-            return []  # Retorna uma lista vazia em caso de erro
 
-    def __init__(self, page, oficina_app, cliente,carregar_clientes):
+    def __init__(self, page, oficina_app):
+        super().__init__()
         self.page = page
         self.oficina_app = oficina_app
         self.oficina = Oficina()
@@ -82,8 +63,7 @@ class EditarCliente(UserControl):
         self.evento_clientes_carregados = threading.Event()
 
         self.conexao = criar_conexao(nome_banco_de_dados)
-        # self.editarcliente = EditarCliente(page, self,self.clientes)
-
+        self.carregar_clientes_no_dropdown()
         try:
             with criar_conexao(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
@@ -102,11 +82,6 @@ class EditarCliente(UserControl):
         # Carregue os dados primeiro
 
         self.clientes_dropdown = []
-        
-        
-          # Armazena a função como um atributo
-        self.carregar_clientes = carregar_clientes
-        self.clientes = self.carregar_clientes()  # Chama a função para carregar os clientes
 
     def build(self):
         # ... outros controles ...
@@ -282,20 +257,38 @@ class EditarCliente(UserControl):
     # Abre o modal para editar os dados do cliente e seus carros.
     def abrir_modal_editar_cliente(self, e, cliente):
         """Abre o modal para editar os dados do cliente e seus carros."""
-        # 1.  Obtém os dados do cliente selecionado
+        # Crie o Dropdown de clientes
+        # Movendo carregar_clientes_no_dropdown para dentro da classe EditarCliente
+
+    def carregar_clientes_no_dropdown(self):
+        """Carrega os clientes no Dropdown."""
+        try:
+            with self.conexao as conexao:
+                cursor = conexao.cursor()
+                cursor.execute("SELECT id, nome FROM clientes")
+                clientes = cursor.fetchall()
+
+                self.clientes_dropdown.options = [
+                    ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
+                    for cliente in clientes
+                ]
+                self.page.update()  # Atualiza a página após carregar as opções
+        except Exception as e:
+            print(f"Erro ao carregar clientes no dropdown: {e}")
+
+        # ... (Resto do seu código) ...
+
         self.cliente_selecionado = cliente
         self.fechar_modal(e)  # Fecha o modal de pesquisa
 
-        # 2. Cria os campos de edição para os dados do cliente
+        # Crie as referências para os campos TextField
         self.campo_nome = ft.TextField(label="Nome", value=cliente.nome)
         self.campo_telefone = ft.TextField(label="Telefone", value=cliente.telefone)
         self.campo_endereco = ft.TextField(label="Endereço", value=cliente.endereco)
         self.campo_email = ft.TextField(label="Email", value=cliente.email)
 
-        # 3. Carrega os carros associados ao cliente
+        # Carrega os carros associados ao cliente (implemente a função carregar_carros_cliente)
         carros_cliente = self.carregar_carros_cliente(cliente.id)
-
-        # 4. Cria o dropdown para exibir os carros do cliente
         self.carros_dropdown = ft.Dropdown(
             width=200,
             options=(
@@ -309,17 +302,6 @@ class EditarCliente(UserControl):
             hint_text="Carros do Cliente",
         )
 
-        # 5. Crie o Dropdown de clientes para escolher o novo dono
-        self.clientes_dropdown = ft.Dropdown(
-            width=200,
-            options=[
-                ft.dropdown.Option(f"{cliente.nome} (ID: {cliente.id})")
-                for cliente in self.oficina_app.clientes
-            ],
-            hint_text="Novo Dono do Carro",
-        )        
-
-        # 6. Cria o AlertDialog (modal) -  `dlg` é definido AQUI!
         dlg = ft.AlertDialog(
             modal=True,
             title=ft.Text("Editar Cliente"),
@@ -329,9 +311,7 @@ class EditarCliente(UserControl):
                     self.campo_telefone,
                     self.campo_endereco,
                     self.campo_email,
-                    self.carros_dropdown, 
-                    #=> Adição do Dropdown de clientes ao modal <=
-                    self.clientes_dropdown
+                    self.carros_dropdown,
                 ]
             ),
             actions=[
@@ -340,8 +320,10 @@ class EditarCliente(UserControl):
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
+        # ... (Resto do seu código) ...
+        # Adicione o Dropdown ao conteúdo do modal
+        dlg.content.controls.append(self.clientes_dropdown)
 
-        # 7. Configura o diálogo na página e abre o modal
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
