@@ -41,6 +41,8 @@ from database import (
     fila_db,
 )
 
+from editar_cliente import EditarCliente
+
 class OficinaApp:
 
     def __init__(self, page: ft.Page):
@@ -50,21 +52,21 @@ class OficinaApp:
         self.cliente_selecionado = None
         self.carro_selecionado = None
         self.ordem_servico_formulario = OrdemServicoFormulario
-        
+        self.editarcliente = EditarCliente
+
         self.carregar_dados()
-    
 
         self.oficina = Oficina()
         self.usuario_atual = None
         self.cliente_selecionado = None
-        self.clientes_dropdown = ft.Dropdown(width=300)  
-        
+        self.clientes_dropdown = ft.Dropdown(width=300)
+
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
         conexao_db = criar_conexao(nome_banco_de_dados)
         conexao = conexao_db
         self.conexao = criar_conexao(nome_banco_de_dados)
-        
+
         # Carregue os dados primeiro
         self.pecas, self.clientes = self.carregar_dados()
 
@@ -72,7 +74,7 @@ class OficinaApp:
         self.ordem_servico_formulario = OrdemServicoFormulario(
             self.page, self, self.pecas, self.clientes
         )
-        
+
         # Carrega o Dropdown ao Iniciar
         self.carregar_clientes_no_dropdown()
 
@@ -82,9 +84,8 @@ class OficinaApp:
         self.build_ui()
         # Criar OrdemServicoFormulario passando self.pecas como argumento
         self.ordem_servico_formulario = OrdemServicoFormulario(
-            self.page, self, self.pecas,  self.clientes
+            self.page, self, self.pecas, self.clientes
         )
-
 
         # Modal de cadastro de carro
         self.modal_cadastro_carro = ft.AlertDialog(
@@ -134,11 +135,16 @@ class OficinaApp:
                 "Cadastrar Cliente",
                 on_click=self.abrir_modal_cadastrar_cliente,
                 disabled=True,
-            ),
-            # Botão Cadastrar Carro
+            ),  # Botão Cadastrar Carro
             "cadastrar_carro": ft.ElevatedButton(
                 "Cadastrar Carro",
                 on_click=self.abrir_modal_cadastro_carro,
+                disabled=True,
+            ),
+            # Botão Editar Cliente
+            "editar_cliente": ft.ElevatedButton(
+                "Pesquisar / Editar Cliente",
+                on_click=self.editarcliente.abrir_modal_pesquisar_cliente(e=None),
                 disabled=True,
             ),
             # Botão Cadastrar Peças
@@ -156,7 +162,7 @@ class OficinaApp:
             # Gera uma Ordem de Serviço
             "ordem_servico": ft.ElevatedButton(
                 "Criar Ordem de Serviço",
-                on_click=self.ordem_servico_formulario.abrir_modal_os ,
+                on_click=self.ordem_servico_formulario.abrir_modal_os,
                 disabled=True,
             ),
             # Relatórios
@@ -165,7 +171,6 @@ class OficinaApp:
                 on_click=self.abrir_modal_relatorio,
                 disabled=True,
             ),
-            
             # Sair do App
             "sair": ft.ElevatedButton("Sair", on_click=self.sair_do_app),
         }
@@ -700,7 +705,7 @@ class OficinaApp:
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
-        
+
     def obter_ids_os_por_peca(self, peca_id):
         """Retorna uma lista de IDs de OSs onde a peça foi utilizada."""
         with sqlite3.connect(nome_banco_de_dados) as conexao:
@@ -742,7 +747,7 @@ class OficinaApp:
             movimentacoes = cursor.fetchall()
 
         return movimentacoes
-    
+
     # ======================================
     # ORDEM DE SERVIÇO
     # ======================================
@@ -792,27 +797,32 @@ class OficinaApp:
             return pecas, clientes  # Retorne pecas e clientes
 
     def build_ui(self):
-        
+
         # Mova a instanciação de OrdemServicoFormulario para cá
         self.formulario_os = OrdemServicoFormulario(
             self.page, self, self.pecas, self.clientes
-        )  
+        )
 
         self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
-            content=self.ordem_servico_formulario, # Referenciar o formulário aqui
+            content=self.ordem_servico_formulario,  # Referenciar o formulário aqui
             actions=[
-                ft.TextButton("Cancelar", on_click=self.ordem_servico_formulario.fechar_modal_os),
-                ft.TextButton("Criar OS", on_click=self.ordem_servico_formulario.criar_ordem_servico),
+                ft.TextButton(
+                    "Cancelar", on_click=self.ordem_servico_formulario.fechar_modal_os
+                ),
+                ft.TextButton(
+                    "Criar OS",
+                    on_click=self.ordem_servico_formulario.criar_ordem_servico,
+                ),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-    #================================
+    # ================================
     # RELATORIOS
-    #================================
-    
+    # ================================
+
     def abrir_modal_relatorio(self, e):
         """Abre o modal para selecionar o tipo de relatório."""
 
@@ -840,7 +850,7 @@ class OficinaApp:
         self.page.dialog = self.modal_relatorio
         self.modal_relatorio.open = True
         self.page.update()
-    
+
     def gerar_relatorio_os(self, e):
         """Gera um relatório com todas as OSs criadas."""
         # Implementar lógica para gerar relatório de OSs aqui
@@ -858,8 +868,7 @@ class OficinaApp:
         # Implementar lógica para exibir e selecionar OSs por cliente aqui
         print("Abrir modal de OSs por cliente...")
         self.fechar_modal(e)
-    
-    
+
     # =============================
     # SAIR DO APLICATIVO
     # ============================
