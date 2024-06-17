@@ -537,16 +537,23 @@ class OrdemServicoFormulario(UserControl):
         try:
             
             cursor = self.conexao.cursor()
+            
+            # Nova linha para debugar
             consulta_sql = "SELECT telefone FROM clientes WHERE nome = ?"
             print(f"Consulta SQL: {consulta_sql}, Parâmetros: {cliente_nome}")
             cursor.execute(
                 "SELECT telefone FROM clientes WHERE nome = ?", (cliente_nome,)
             )
             resultado = cursor.fetchone()
-
+            print(f"Resultado da consulta: {resultado}")
             if resultado:
+                print(f"Número de telefone encontrado: {resultado[0]}")
+                link = self.gerar_link_whatsapp(ordem_servico_id) #certifique-se de ter passado o argumento ordem_servico_id
+                print(link)  # Mova o print para dentro do bloco if
+
                 return resultado[0]
             else:
+                print(f"Nenhum número de telefone encontrado para {cliente_nome}")
                 return None
 
         except sqlite3.Error as e:
