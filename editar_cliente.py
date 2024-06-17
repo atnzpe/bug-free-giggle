@@ -63,7 +63,7 @@ class EditarCliente(UserControl):
         self.evento_clientes_carregados = threading.Event()
 
         self.conexao = criar_conexao(nome_banco_de_dados)
-        self.carregar_clientes_no_dropdown()
+        self.carregar_clientes_no_dropdown(self)
         try:
             with criar_conexao(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
@@ -95,8 +95,9 @@ class EditarCliente(UserControl):
 
     def fechar_modal(self, e):
         """Fecha qualquer modal aberto."""
-        self.page.dialog.open = False
-        self.page.update()
+        print(self.page.dialog)  # Adicione este print para debugar
+        if self.page.dialog:  # Verifica se o diálogo existe
+            self.page.update()
 
     def mostrar_alerta(self, mensagem):
         """Exibe um alerta em um Modal (AlertDialog)."""
@@ -255,12 +256,9 @@ class EditarCliente(UserControl):
     # Abre o modal de pesquisa e prepara para exibir os resultados.
 
     # Abre o modal para editar os dados do cliente e seus carros.
-    def abrir_modal_editar_cliente(self, e, cliente):
-        """Abre o modal para editar os dados do cliente e seus carros."""
-        # Crie o Dropdown de clientes
-        # Movendo carregar_clientes_no_dropdown para dentro da classe EditarCliente
+    
 
-    def carregar_clientes_no_dropdown(self):
+    def carregar_clientes_no_dropdown(self,e):
         """Carrega os clientes no Dropdown."""
         try:
             with self.conexao as conexao:
@@ -278,7 +276,7 @@ class EditarCliente(UserControl):
 
         # ... (Resto do seu código) ...
 
-        self.cliente_selecionado = cliente
+        
         self.fechar_modal(e)  # Fecha o modal de pesquisa
 
         # Crie as referências para os campos TextField
@@ -327,6 +325,12 @@ class EditarCliente(UserControl):
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
+
+    def abrir_modal_editar_cliente(self, e, cliente):
+        """Abre o modal para editar os dados do cliente e seus carros."""
+        # Crie o Dropdown de clientes
+        # Movendo carregar_clientes_no_dropdown para dentro da classe EditarCliente
+        self.cliente_selecionado = cliente
 
     # Função para carregar os carros associados a um cliente do banco de dados.
     def carregar_carros_cliente(self, cliente_id):
