@@ -282,24 +282,20 @@ class EditarCliente(UserControl):
     # Abre o modal para editar os dados do cliente e seus carros.
     def abrir_modal_editar_cliente(self, e, cliente):
         """Abre o modal para editar os dados do cliente e seus carros."""
-        # Crie o Dropdown de clientes
+        # 1.  Obtém os dados do cliente selecionado
         self.cliente_selecionado = cliente
         self.fechar_modal(e)  # Fecha o modal de pesquisa
 
-        # Adicione o Dropdown ao conteúdo do modal
-        dlg.content.controls.append(self.clientes_dropdown)
-
-        self.cliente_selecionado = cliente
-        self.fechar_modal(e)  # Fecha o modal de pesquisa
-
-        # Crie as referências para os campos TextField
+        # 2. Cria os campos de edição para os dados do cliente
         self.campo_nome = ft.TextField(label="Nome", value=cliente.nome)
         self.campo_telefone = ft.TextField(label="Telefone", value=cliente.telefone)
         self.campo_endereco = ft.TextField(label="Endereço", value=cliente.endereco)
         self.campo_email = ft.TextField(label="Email", value=cliente.email)
 
-        # Carrega os carros associados ao cliente (implemente a função carregar_carros_cliente)
+        # 3. Carrega os carros associados ao cliente
         carros_cliente = self.carregar_carros_cliente(cliente.id)
+
+        # 4. Cria o dropdown para exibir os carros do cliente
         self.carros_dropdown = ft.Dropdown(
             width=200,
             options=(
@@ -313,30 +309,42 @@ class EditarCliente(UserControl):
             hint_text="Carros do Cliente",
         )
 
-        if self.carros_dropdown.options == []:
-            dlg = ft.AlertDialog(
-                modal=True,
-                title=ft.Text("Editar Cliente"),
-                content=ft.Column(
-                    [
-                        self.campo_nome,
-                        self.campo_telefone,
-                        self.campo_endereco,
-                        self.campo_email,
-                        self.carros_dropdown,
-                    ]
-                ),
-                actions=[
-                    ft.TextButton("Cancelar", on_click=self.fechar_modal),
-                    ft.ElevatedButton("Salvar", on_click=self.salvar_edicao_cliente),
-                ],
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
-            dlg.content.controls.append(self.clientes_dropdown)
-            
-            self.page.dialog = dlg
-            dlg.open = True
-            self.page.update()
+        # 5. Crie o Dropdown de clientes para escolher o novo dono
+        self.clientes_dropdown = ft.Dropdown(
+            width=200,
+            options=[
+                ft.dropdown.Option(f"{cliente.nome} (ID: {cliente.id})")
+                for cliente in self.oficina_app.clientes
+            ],
+            hint_text="Novo Dono do Carro",
+        )        
+
+        # 6. Cria o AlertDialog (modal) -  `dlg` é definido AQUI!
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Editar Cliente"),
+            content=ft.Column(
+                [
+                    self.campo_nome,
+                    self.campo_telefone,
+                    self.campo_endereco,
+                    self.campo_email,
+                    self.carros_dropdown, 
+                    #=> Adição do Dropdown de clientes ao modal <=
+                    self.clientes_dropdown
+                ]
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=self.fechar_modal),
+                ft.ElevatedButton("Salvar", on_click=self.salvar_edicao_cliente),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        # 7. Configura o diálogo na página e abre o modal
+        self.page.dialog = dlg
+        dlg.open = True
+        self.page.update()
 
     # Função para carregar os carros associados a um cliente do banco de dados.
     def carregar_carros_cliente(self, cliente_id):
