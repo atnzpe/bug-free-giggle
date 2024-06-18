@@ -24,6 +24,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from flet import UserControl  # Certifique-se de importar os componentes necessários
 
+from report import gerar_relatorio_os,gerar_relatorio_estoque,abrir_modal_os_por_cliente
 from os_formulario import OrdemServicoFormulario
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
@@ -50,7 +51,7 @@ class OficinaApp:
         self.cliente_selecionado = None
         self.carro_selecionado = None
         self.ordem_servico_formulario = OrdemServicoFormulario
-        
+        self.conexao = criar_conexao(nome_banco_de_dados)
         self.carregar_dados()
     
 
@@ -822,14 +823,17 @@ class OficinaApp:
             content=ft.Column(
                 [
                     ft.ElevatedButton(
-                        "Relatório OS", on_click=self.gerar_relatorio_os
-                    ),  # Implementar lógica depois
+                        "Relatório OS",
+                        on_click=gerar_relatorio_os(self,self.conexao), 
+                    ),
                     ft.ElevatedButton(
-                        "Saldo de Estoque", on_click=self.gerar_relatorio_estoque
-                    ),  # Implementar lógica depois
+                        "Saldo de Estoque",
+                        on_click=gerar_relatorio_estoque,  # Implementar lógica depois
+                    ),
                     ft.ElevatedButton(
-                        "OS por Cliente", on_click=self.abrir_modal_os_por_cliente
-                    ),  # Implementar lógica depois
+                        "OS por Cliente",
+                        on_click=abrir_modal_os_por_cliente,  # Implementar lógica depois
+                    ),
                 ]
             ),
             actions=[
@@ -840,24 +844,8 @@ class OficinaApp:
         self.page.dialog = self.modal_relatorio
         self.modal_relatorio.open = True
         self.page.update()
+
     
-    def gerar_relatorio_os(self, e):
-        """Gera um relatório com todas as OSs criadas."""
-        # Implementar lógica para gerar relatório de OSs aqui
-        print("Gerar relatório de OSs...")
-        self.fechar_modal(e)
-
-    def gerar_relatorio_estoque(self, e):
-        """Gera um PDF do estoque."""
-        # Implementar lógica para gerar relatório de estoque aqui
-        print("Gerar relatório de estoque...")
-        self.fechar_modal(e)
-
-    def abrir_modal_os_por_cliente(self, e):
-        """Abre o modal para selecionar as OSs por cliente."""
-        # Implementar lógica para exibir e selecionar OSs por cliente aqui
-        print("Abrir modal de OSs por cliente...")
-        self.fechar_modal(e)
     
     
     # =============================
