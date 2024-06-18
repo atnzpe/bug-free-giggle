@@ -99,6 +99,10 @@ class OrdemServicoFormulario(UserControl):
         self.adicionar_peca_button = ft.ElevatedButton(
             "Adicionar Peça", on_click=self.adicionar_peca
         )
+        self.preco_mao_de_obra_field = ft.TextField(
+            label="Digite o Preço", width=100, value="0.00"
+        )
+        
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
         
@@ -171,6 +175,12 @@ class OrdemServicoFormulario(UserControl):
                     ),
                     ft.Row(
                         [
+                            ft.Text("Mão de Obra:", width=100),
+                            self.preco_mao_de_obra_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
                             self.adicionar_peca_button,
                         ],
                     ),
@@ -229,6 +239,12 @@ class OrdemServicoFormulario(UserControl):
                     ),
                     ft.Row(
                         [
+                            ft.Text("Mão de Obra:", width=100),
+                            self.preco_mao_de_obra_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
                             self.adicionar_peca_button,
                         ],
                     ),
@@ -257,6 +273,7 @@ class OrdemServicoFormulario(UserControl):
         self.peca_dropdown.value = None
         self.preco_unitario_field.value = "0.00"
         self.quantidade_field.value = "1"
+        self.preco_mao_de_obra_field = "0.00"
         self.pecas_selecionadas = []
         self.pecas_list_view.controls = []
         self.valor_total_text.value = "Valor Total: R$ 0.00"
