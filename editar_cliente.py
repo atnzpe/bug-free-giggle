@@ -166,8 +166,12 @@ class EditarCliente(UserControl):
 
     def fechar_modal(self, e):
         """Fecha o modal atual."""
-        self.page.dialog = None
+        print("Iniciando fechamento do modal...")  # Print antes
+        if self.page.dialog:
+            self.page.dialog.open = False
+        print("Modal definido como None.")  # Print durante
         self.page.update()
+        print("Página atualizada.")  # Print depois
 
     def mostrar_alerta(self, mensagem):
         """Exibe um alerta em um modal."""
@@ -176,9 +180,10 @@ class EditarCliente(UserControl):
             title=ft.Text("ATENÇÃO"),
             content=ft.Text(mensagem),
             actions=[
-                ft.TextButton("OK", on_click=self.fechar_modal),
+                ft.TextButton("OK", on_click=self.fechar_modal),  # Fecha o alerta ao clicar em OK
             ],
             actions_alignment=MainAxisAlignment.END,
+            on_dismiss=self.fechar_modal # Fecha o modal de edição ao fechar o alerta
         )
         self.page.dialog = dlg
         dlg.open = True
@@ -251,29 +256,27 @@ class EditarCliente(UserControl):
 
     def salvar_edicao_cliente(self, e, cliente):  # Adiciona 'cliente' como argumento
         """Salva as edições do cliente no banco de dados."""
+        
         try:
             # Obtém os valores dos campos de texto
             nome = self.campo_nome.value
             telefone = self.campo_telefone.value
             endereco = self.campo_endereco.value
             email = self.campo_email.value
-
+            print("Iniciando salvamento...")
             # Atualiza o cliente no banco de dados
             if self.oficina_app.oficina.atualizar_cliente(
                 cliente.id, nome, telefone, email
             ):
-                
-                self.page.update()
-                # Força a atualização da página para fechar o modal
-                self.mostrar_alerta("Cliente atualizado com sucesso!")
-                
-                self.page.update()
+                print("Edição salva com sucesso!")
+                print("Salvando edição do cliente...")
+                self.mostrar_alerta("Cliente atualizado com sucesso!")  # Exibe o alerta de sucesso
             else:
-                  # Força a atualização da página para fechar o modal
                 self.mostrar_alerta("Erro ao atualizar os dados do cliente!")
+            
 
         except Exception as e:
             print(f"Erro ao salvar edição do cliente: {e}")
             self.mostrar_alerta(f"Erro ao salvar edição do cliente: {e}")
             
-        self.page.update()
+        #self.page.update()
