@@ -824,11 +824,11 @@ class OficinaApp:
                 [
                     ft.ElevatedButton(
                         "Relatório OS",
-                        on_click=gerar_relatorio_os(self,self.conexao), 
+                        on_click=gerar_relatorio_os(self.conexao, self.page), 
                     ),
                     ft.ElevatedButton(
                         "Saldo de Estoque",
-                        on_click=gerar_relatorio_estoque,  # Implementar lógica depois
+                        on_click=gerar_relatorio_estoque(self.conexao, self.page),  # Implementar lógica depois
                     ),
                     ft.ElevatedButton(
                         "OS por Cliente",
