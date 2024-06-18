@@ -5,70 +5,51 @@ import flet as ft
 import queue
 from datetime import datetime
 
-# BANCO DE DADAS E FILA
-# nome_banco_de_dados = "./data/oficina_guarulhos.db"
+# BANCO DE DADOS E FILA
+nome_banco_de_dados = "./data/oficina_guarulhos.db"
 # nome_banco_de_dados = "./data/oficina_guarulhosTeste.db"
 # nome_banco_de_dados = "./data/oficina_guarulhosProdução.db"
 
-
 # Fila para operações do banco de dados
 fila_db = queue.Queue()
-# versao1.0
 
+# Versão do banco de dados
+VERSAO_BANCO_DE_DADOS = "1.0"  # Defina a versão do banco de dados aqui
 
-# Cria conexão com o Banco de Dados Sqlite3 e cria as tabelas
+# FUNÇÕES DE BANCO DE DADOS
+
 def criar_conexao(banco_de_dados):
     """
     Cria uma conexão com o banco de dados SQLite.
     Se o banco de dados não existir, ele será criado.
     """
 
-    banco_existe = os.path.exists(
-        banco_de_dados
-    )  # Verifica se o arquivo do banco existe
-
+    banco_existe = os.path.exists(banco_de_dados)
     conexao = None
     try:
         conexao = sqlite3.connect(banco_de_dados)
         if not banco_existe:
-            criar_tabelas(conexao)  # Cria as tabelas se o banco for novo
+            criar_tabelas(conexao)
             print("Banco de dados e tabelas criados com sucesso!")
-        # else:
-        # print("Amor com o banco de dados estabelecida com sucesso!")
+        else:
+            print("Conexão com o banco de dados estabelecida com sucesso!")
     except sqlite3.Error as erro:
         print(f"Erro ao conectar ao banco de dados: {erro}")
     return conexao
 
 
-# conexao_db = criar_conexao(nome_banco_de_dados)
-# conexao = criar_conexao(nome_banco_de_dados)
-# Fila para operações do banco de dados
-fila_db = queue.Queue()
-# versao1.0
-
-
-# Executa uma consulta SQL na conexão fornecida
 def executar_sql(conexao, sql, parametros=None):
-    """Executa uma consulta SQL na conexão fornecida.
-
-    Args:
-        conexao (sqlite3.Connection): Objeto de conexão com o banco de dados.
-        sql (str): A instrução SQL a ser executada.
-        parametros (tuple, optional): Uma tupla contendo os parâmetros para a consulta SQL (se houver).
-    """
+    """Executa uma consulta SQL na conexão fornecida."""
     try:
         cursor = conexao.cursor()
         if parametros:
             cursor.execute(sql, parametros)
         else:
             cursor.execute(sql)
-        conexao.commit()  # Confirma (commit) as alterações no banco de dados
+        conexao.commit()
         print("Consulta SQL executada com sucesso!")
     except sqlite3.Error as e:
         print(f"Erro ao executar consulta SQL: {e}")
-
-
-# Cria conexão com o Banco de Dados Sqlite3 e cria as tabelas
 
 
 def criar_usuario_admin(conexao):
@@ -90,33 +71,33 @@ def criar_tabelas(conexao):
     """Cria as tabelas do banco de dados."""
     cursor = conexao.cursor()
 
-    # Criar tabela de usuários
+    # --- USUARIOS ---
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL UNIQUE,  -- Nome de usuário deve ser único
+            nome TEXT NOT NULL UNIQUE,
             senha TEXT NOT NULL
         )
         """
     )
-    print("Usuarios criada!")
+    print("Tabela 'usuarios' criada!")
 
-    # Cria a tabela clientes
+    # --- CLIENTES ---
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL UNIQUE, -- Nome do cliente deve ser único
+            nome TEXT NOT NULL UNIQUE,
             telefone TEXT,
             endereco TEXT,
             email TEXT
         )
         """
     )
-    print("Tabela cliente criada com sucesso!")
+    print("Tabela 'clientes' criada!")
 
-    # Cria a tabela carros com cliente_id como chave estrangeira
+    # --- CARROS ---
     cursor.execute(
         """
     CREATE TABLE IF NOT EXISTS carros (
@@ -124,19 +105,17 @@ def criar_tabelas(conexao):
         modelo TEXT NOT NULL,
         ano INTEGER,
         cor TEXT,
-        placa TEXT NOT NULL UNIQUE, -- Placa do veículo deve ser única
-        cliente_id INTEGER,         -- Define a relação com a tabela 'clientes'
+        placa TEXT NOT NULL UNIQUE,
+        cliente_id INTEGER,
         FOREIGN KEY (cliente_id) REFERENCES clientes(id)            
         )
         """
     )
-    print("Tabela carros criada com sucesso!")
-    # Crie as outras tabelas (carros, peças, usuários, etc.) aqui
+    print("Tabela 'carros' criada!")
 
-    # Cria a tabela clientes_carros
+    # --- CLIENTES_CARROS ---
     cursor.execute(
         """
-        
     CREATE TABLE IF NOT EXISTS clientes_carros (
         cliente_id INTEGER,
         carro_id INTEGER,
@@ -144,12 +123,11 @@ def criar_tabelas(conexao):
         FOREIGN KEY (carro_id) REFERENCES carros(id),
         PRIMARY KEY (cliente_id, carro_id)
         )
-        
         """
     )
-    print("Tabela clientes_carros criada com sucesso!")
+    print("Tabela 'clientes_carros' criada!")
 
-    # movimentacao_pecas
+    # --- MOVIMENTACAO_PECAS ---
     cursor.execute(
         """
     CREATE TABLE IF NOT EXISTS movimentacao_pecas (
@@ -158,15 +136,15 @@ def criar_tabelas(conexao):
         data_movimentacao DATETIME DEFAULT CURRENT_TIMESTAMP,
         tipo_movimentacao TEXT NOT NULL CHECK (tipo_movimentacao IN ('entrada', 'saida')),
         quantidade INTEGER NOT NULL,
-        ordem_servico_id INTEGER, -- Agora é opcional (pode ser NULL) 
+        ordem_servico_id INTEGER, 
         FOREIGN KEY (peca_id) REFERENCES pecas(id),
-        FOREIGN KEY (ordem_servico_id) REFERENCES ordem_servico(id) -- Esta restrição ainda é válida
+        FOREIGN KEY (ordem_servico_id) REFERENCES ordem_servico(id)
     )
     """
     )
-    print("movimentacao_pecas criada!")
+    print("Tabela 'movimentacao_pecas' criada!")
 
-    # Cria a Tabela Serviços
+    # --- SERVICOS ---
     cursor.execute(
         """
     CREATE TABLE IF NOT EXISTS servicos (
@@ -178,9 +156,9 @@ def criar_tabelas(conexao):
         )
         """
     )
-    print("Cria Tabela Seriços!")
+    print("Tabela 'servicos' criada!")
 
-    # Cria Tabela Peças Utilizadas
+    # --- PECAS_UTILIZADAS ---
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS pecas_utilizadas (
@@ -188,15 +166,15 @@ def criar_tabelas(conexao):
             servico_id INTEGER NOT NULL,
             peca_id INTEGER NOT NULL,
             quantidade INTEGER NOT NULL,
-            valor_unitario REAL NOT NULL,  -- Valor unitário da peça no momento do serviço
+            valor_unitario REAL NOT NULL,
             FOREIGN KEY (servico_id) REFERENCES servicos(id),
             FOREIGN KEY (peca_id) REFERENCES pecas(id)
 );
         """
     )
+    print("Tabela 'pecas_utilizadas' criada!")
 
-    # Cria a tabela peças
-    cursor = conexao.cursor()
+    # --- PECAS ---
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS pecas (
@@ -211,10 +189,9 @@ def criar_tabelas(conexao):
         )
         """
     )
-    print("Tabela pecas criada com sucesso!")
+    print("Tabela 'pecas' criada!")
 
-    # Cria a Tabela Ordem de Serviço
-    cursor = conexao.cursor()
+    # --- ORDEM_SERVICO ---
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS ordem_servico (
@@ -228,8 +205,9 @@ def criar_tabelas(conexao):
         )
         """
     )
-    print("Tabela ordem_servico criada com sucesso!")
+    print("Tabela 'ordem_servico' criada!")
 
+    # --- PecasOrdemServico ---
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS PecasOrdemServico (
@@ -242,15 +220,10 @@ def criar_tabelas(conexao):
         )
         """
     )
-    print("Tabelas criadas com sucesso!")
+    print("Tabela 'PecasOrdemServico' criada!")
 
     criar_usuario_admin(conexao)
-
-    # Verificar se o usuário "admin" já existe
-    cursor.execute("SELECT * FROM usuarios WHERE nome = 'admin'")
-    usuario_admin_existe = cursor.fetchone()
-
-    # ================================
+    print("Tabelas criadas com sucesso!")
 
 
 def inserir_dados_iniciais(conexao):
@@ -266,13 +239,13 @@ def inserir_dados_iniciais(conexao):
 
     # Inserir peças
     cursor.execute(
-        "INSERT INTO pecas (nome, preco_unitario, quantidade_em_estoque) VALUES ('Teste 1r', 50.00, 100)"
+        "INSERT INTO pecas (nome, preco_compra, preco_venda, quantidade_em_estoque) VALUES ('Teste 1r', 50.00, 60.00, 100)"
     )
     cursor.execute(
-        "INSERT INTO pecas (nome, preco_unitario, quantidade_em_estoque) VALUES ('Teste 2', 20.00, 50)"
+        "INSERT INTO pecas (nome, preco_compra, preco_venda, quantidade_em_estoque) VALUES ('Teste 2', 20.00, 30.00, 50)"
     )
     cursor.execute(
-        "INSERT INTO pecas (nome, preco_unitario, quantidade_em_estoque) VALUES ('Teste3', 80.00, 30)"
+        "INSERT INTO pecas (nome, preco_compra, preco_venda, quantidade_em_estoque) VALUES ('Teste3', 80.00, 90.00, 30)"
     )
 
     conexao.commit()
@@ -280,7 +253,6 @@ def inserir_dados_iniciais(conexao):
 
 
 def obter_clientes(conexao):
-    conexao = criar_conexao(nome_banco_de_dados)
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM clientes")
     return cursor.fetchall()
@@ -298,6 +270,7 @@ def obter_pecas(conexao):
     return cursor.fetchall()
 
 
+<<<<<<< HEAD
 def inserir_ordem_servico(
     conexao, cliente_id, carro_id, pecas_quantidades, valor_total
 ):
@@ -312,20 +285,26 @@ def inserir_ordem_servico(
         e os valores são as quantidades.
         valor_total: O valor total da ordem de serviço.
     """
+=======
+def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades, valor_total):
+    """Insere uma nova ordem de serviço no banco de dados."""
+>>>>>>> feat/botao-relatorios
     try:
-        print(
-            "Peças e quantidades recebidas em inserir_ordem_servico:", pecas_quantidades
-        )
+        print("Peças e quantidades recebidas em inserir_ordem_servico:", pecas_quantidades)
         cursor = conexao.cursor()
 
+<<<<<<< HEAD
         # Obtem a Dta e Hora
+=======
+        # Obtém a Data e Hora
+>>>>>>> feat/botao-relatorios
         data_hora = datetime.now()
 
         # Inserir a ordem de serviço com data_hora e valor_total
         cursor.execute(
             """
             INSERT INTO ordem_servico (cliente_id, carro_id, data_criacao, valor_total)
-            VALUES (?, ?,?,?)
+            VALUES (?, ?, ?, ?)
             """,
             (cliente_id, carro_id, data_hora, valor_total),
         )
@@ -333,9 +312,7 @@ def inserir_ordem_servico(
 
         # Inserir peças na tabela PecasOrdemServico
         for peca_id, quantidade in pecas_quantidades.items():
-            print(
-                f"Inserindo peça {peca_id} com quantidade {quantidade} na OS {ordem_servico_id}"
-            )
+            print(f"Inserindo peça {peca_id} com quantidade {quantidade} na OS {ordem_servico_id}")
             cursor.execute(
                 """
                 INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
@@ -351,8 +328,12 @@ def inserir_ordem_servico(
         return None
 
 
+<<<<<<< HEAD
 # Atualiza o estoque da peça.
+=======
+>>>>>>> feat/botao-relatorios
 def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
+    """Atualiza o estoque da peça."""
     try:
         print(
             f"Atualizando estoque da peça {peca_id}. Quantidade utilizada: {quantidade_utilizada}"
@@ -361,7 +342,7 @@ def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
         cursor.execute(
             """
             UPDATE pecas
-            SET quantidade_em_estoque = quantidade_em_estoque + ?
+            SET quantidade_em_estoque = quantidade_em_estoque - ? 
             WHERE id = ?
             """,
             (quantidade_utilizada, peca_id),
@@ -407,13 +388,9 @@ def atualizar_carro(carro_id, cliente_id, conexao=None):
 def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
     """Verifica se a quantidade em estoque é suficiente para a peça."""
     try:
-        print(
-            f"Verificando estoque da peça {peca_id}. Quantidade necessária: {quantidade_necessaria}"
-        )
+        print(f"Verificando estoque da peça {peca_id}. Quantidade necessária: {quantidade_necessaria}")
         cursor = conexao.cursor()
-        cursor.execute(
-            "SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,)
-        )
+        cursor.execute("SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,))
         resultado = cursor.fetchone()
 
         if resultado is None:
@@ -428,6 +405,7 @@ def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
         print(f"Erro em quantidade_em_estoque_suficiente: {e}")
         return False
 
+<<<<<<< HEAD
 
 # database.py
 
@@ -445,6 +423,11 @@ def inserir_movimentacao_peca(
         quantidade: A quantidade da peça movimentada.
         ordem_servico_id: O ID da ordem de serviço (se aplicável).
     """
+=======
+
+def inserir_movimentacao_peca(conexao, peca_id, tipo_movimentacao, quantidade, ordem_servico_id):
+    """Insere uma nova movimentação de peça no banco de dados."""
+>>>>>>> feat/botao-relatorios
     try:
         cursor = conexao.cursor()
         cursor.execute(
@@ -460,18 +443,8 @@ def inserir_movimentacao_peca(
 
 
 if __name__ == "__main__":
-    conexao = criar_conexao("./data/oficina_guarulhos.db")
+    conexao = criar_conexao(nome_banco_de_dados)
     if conexao is not None:
         criar_tabelas(conexao)
         inserir_dados_iniciais(conexao)
         conexao.close()
-
-# BANCO DE DADAS E FILA
-nome_banco_de_dados = "./data/oficina_guarulhos.db"
-# nome_banco_de_dados = "./data/oficina_guarulhosTeste.db"
-# nome_banco_de_dados = "./data/oficina_guarulhosProdução.db"
-
-conexao_db = criar_conexao(nome_banco_de_dados)
-# Fila para operações do banco de dados
-fila_db = queue.Queue()
-# versao1.0

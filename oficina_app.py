@@ -23,7 +23,12 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from flet import UserControl  # Certifique-se de importar os componentes necessários
+<<<<<<< HEAD
 from editar_cliente import EditarCliente # Importe a classe EditarCliente
+=======
+
+from report import gerar_relatorio_os,gerar_relatorio_estoque,abrir_modal_os_por_cliente
+>>>>>>> feat/botao-relatorios
 from os_formulario import OrdemServicoFormulario
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
@@ -53,8 +58,12 @@ class OficinaApp:
         self.cliente_selecionado = None
         self.carro_selecionado = None
         self.ordem_servico_formulario = OrdemServicoFormulario
+<<<<<<< HEAD
         
 
+=======
+        self.conexao = criar_conexao(nome_banco_de_dados)
+>>>>>>> feat/botao-relatorios
         self.carregar_dados()
 
         self.oficina = Oficina()
@@ -838,14 +847,17 @@ class OficinaApp:
             content=ft.Column(
                 [
                     ft.ElevatedButton(
-                        "Relatório OS", on_click=self.gerar_relatorio_os
-                    ),  # Implementar lógica depois
+                        "Relatório OS",
+                        on_click=gerar_relatorio_os(self.conexao, self.page), 
+                    ),
                     ft.ElevatedButton(
-                        "Saldo de Estoque", on_click=self.gerar_relatorio_estoque
-                    ),  # Implementar lógica depois
+                        "Saldo de Estoque",
+                        on_click=gerar_relatorio_estoque(self.conexao, self.page),  # Implementar lógica depois
+                    ),
                     ft.ElevatedButton(
-                        "OS por Cliente", on_click=self.abrir_modal_os_por_cliente
-                    ),  # Implementar lógica depois
+                        "OS por Cliente",
+                        on_click=abrir_modal_os_por_cliente,  # Implementar lógica depois
+                    ),
                 ]
             ),
             actions=[
@@ -857,6 +869,7 @@ class OficinaApp:
         self.modal_relatorio.open = True
         self.page.update()
 
+<<<<<<< HEAD
     def gerar_relatorio_os(self, e):
         """Gera um relatório com todas as OSs criadas."""
         # Implementar lógica para gerar relatório de OSs aqui
@@ -875,6 +888,11 @@ class OficinaApp:
         print("Abrir modal de OSs por cliente...")
         self.fechar_modal(e)
 
+=======
+    
+    
+    
+>>>>>>> feat/botao-relatorios
     # =============================
     # SAIR DO APLICATIVO
     # ============================
