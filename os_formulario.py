@@ -354,7 +354,7 @@ class OrdemServicoFormulario(UserControl):
             }
         )
         self.atualizar_lista_pecas()
-        self.calcular_valor_total()
+        self.calcular_valor_total() #atuazando brancjh
 
     def atualizar_lista_pecas(self):
         self.pecas_list_view.controls = []
