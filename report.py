@@ -5,6 +5,7 @@ from database import (
     nome_banco_de_dados
 )
 
+
 def gerar_relatorio_os(conexao, page): 
     """Gera um relatório em PDF com todas as OSs criadas, 
     incluindo valor total e quantidade de peças.
@@ -158,3 +159,9 @@ def gerar_relatorio_estoque(conexao, page):
         )
         page.snack_bar.open = True
         page.update()
+        
+def abrir_modal_os_por_cliente(self, e):
+    """Abre o modal para selecionar as OSs por cliente."""
+    # Implementar lógica para exibir e selecionar OSs por cliente aqui
+    print("Abrir modal de OSs por cliente...")
+    self.fechar_modal(e)
