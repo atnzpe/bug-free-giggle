@@ -111,7 +111,14 @@ class OrdemServicoFormulario(UserControl):
         self.adicionar_peca_button = ft.ElevatedButton(
             "Adicionar Peça", on_click=self.adicionar_peca
         )
+<<<<<<< HEAD
 
+=======
+        self.preco_mao_de_obra_field = ft.TextField(
+            label="Digite o Preço", width=100, value="0.00"
+        )
+        
+>>>>>>> feat/botao-relatorios
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
 
@@ -181,6 +188,12 @@ class OrdemServicoFormulario(UserControl):
                         [
                             ft.Text("Quantidade:", width=100),
                             self.quantidade_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
+                            ft.Text("Mão de Obra:", width=100),
+                            self.preco_mao_de_obra_field,
                         ],
                     ),
                     ft.Row(
@@ -259,6 +272,12 @@ class OrdemServicoFormulario(UserControl):
                     ),
                     ft.Row(
                         [
+                            ft.Text("Mão de Obra:", width=100),
+                            self.preco_mao_de_obra_field,
+                        ],
+                    ),
+                    ft.Row(
+                        [
                             self.adicionar_peca_button,
                         ],
                     ),
@@ -287,7 +306,12 @@ class OrdemServicoFormulario(UserControl):
         self.carro_dropdown.value = None
         self.peca_dropdown.value = None
         self.preco_unitario_field.value = "0.00"
+<<<<<<< HEAD
         self.quantidade_field.value = ""
+=======
+        self.quantidade_field.value = "1"
+        self.preco_mao_de_obra_field = "0.00"
+>>>>>>> feat/botao-relatorios
         self.pecas_selecionadas = []
         self.pecas_list_view.controls = []
         self.valor_total_text.value = "Nenhuma Peça adiconada"  # "Valor Total: R$ 0.00"
