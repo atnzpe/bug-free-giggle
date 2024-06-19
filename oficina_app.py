@@ -793,11 +793,13 @@ class OficinaApp:
             self.modal_ordem_servico = (
                 self.ordem_servico_formulario.criar_modal_ordem_servico()
             )
+            
             self.page.dialog = self.modal_ordem_servico
 
         # Abra o modal
         self.modal_ordem_servico.open = True
         self.page.update()
+        #ft.TextButton("Cancelar", on_click=lambda e: self.ordem_servico_formulario.fechar_modal_os(e, self.modal_ordem_servico)),
 
 
     # ================================

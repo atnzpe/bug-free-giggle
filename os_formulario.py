@@ -70,6 +70,9 @@ class OrdemServicoFormulario(UserControl):
             label="Mão de Obra (R$)", width=100, value="0.00"
         )
 
+        # Cria o modal apenas uma vez no construtor <<<--- Correção
+        self.modal_ordem_servico = self.criar_modal_ordem_servico()
+
         # Inicializa dados da ordem de serviço
         self.pecas_selecionadas = []
         self.link_whatsapp = None
@@ -83,7 +86,7 @@ class OrdemServicoFormulario(UserControl):
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
-        self.modal_ordem_servico = ft.AlertDialog(
+        return ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Container(
@@ -157,7 +160,7 @@ class OrdemServicoFormulario(UserControl):
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-        return self.modal_ordem_servico
+        #return self.modal_ordem_servico
 
     def atualizar_mao_de_obra(self, e):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
@@ -365,7 +368,7 @@ class OrdemServicoFormulario(UserControl):
 
     def fechar_modal_os(self, e):
         """Fecha o modal de ordem de serviço."""
-        self.modal_ordem_servico.open = False
+        self.oficina_app.modal_ordem_servico.open = False  # <<<--- Acessa o modal através de oficina_app
         self.page.update()
 
     def criar_ordem_servico(self):
