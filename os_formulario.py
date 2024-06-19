@@ -48,8 +48,8 @@ class OrdemServicoFormulario(UserControl):
         self.clientes = clientes
 
         # Inicializa os componentes da interface
-        self.cliente_dropdown = ft.Dropdown(width=150)
-        self.carro_dropdown = ft.Dropdown(width=150)
+        self.cliente_dropdown = ft.Dropdown(width=130)
+        self.carro_dropdown = ft.Dropdown(width=130)
         self.peca_dropdown = ft.Dropdown(width=100)
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário", width=100, value="0.00"
@@ -86,90 +86,63 @@ class OrdemServicoFormulario(UserControl):
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Container(
-                
-                content=ft.Column(
+                content=ft.Row(  # Linha principal para conter as duas colunas
                     [
-                        ft.Row(
+                        ft.Column(  # Primeira Coluna
                             [
-                                ft.Text("Cliente:", width=100),
+                                ft.Container( # <<<--- Container para controlar a largura do texto "Cliente:"
+                                    content=ft.Text("Cliente:"),
+                                    width=100, # Largura desejada para o texto "Cliente:"
+                                ),
                                 self.cliente_dropdown,
-                            ]
-                        ),
-                        ft.Row(
-                            [
-                                ft.Text("Carro:", width=100),
+                                
+                                ft.Container(content=ft.Text("Carro:"), width=100),
                                 self.carro_dropdown,
-                            ]
-                        ),
-                        ft.Row(
-                            [
-                                ft.Text("Peça:", width=100),
+                                
+                                ft.Container(content=ft.Text("Peça:"), width=100),
                                 self.peca_dropdown,
-                            ]
-                        ),
-                        ft.Row(
-                            [
+                                
                                 ft.Text("Preço Unitário:", width=100),
                                 self.preco_unitario_field,
-                                
-                            ]
-                        ),
-                        ft.Row(
-                            [
                                 ft.Text("Quantidade:", width=100),
                                 self.quantidade_field,
                                 self.adicionar_peca_button,
-                            ]
+                            ],
+                            spacing=10,  # Espaçamento entre elementos da coluna
+                            alignment=ft.MainAxisAlignment.START,
                         ),
-                    ],
-                ),
-                content=ft.Column(
-                    [
-                        ft.Row(
+                        ft.VerticalDivider(  # <<<--- Separador visual entre as colunas
+                            width=2,  # Largura do separador
+                            color=ft.colors.GREY_400,  # Cor do separador
+                        ),
+                        ft.Column(  # Segunda Coluna
                             [
                                 self.pecas_list_view,
-                            ]
-                        ),
-                        ft.Column(
-                            [
-                                        self.total_pecas_text,
-                                        self.mao_de_obra_text,
-                                        self.total_com_mao_de_obra_text,
-                            ]
-                        ),
-                        ft.Row(
+                                self.total_pecas_text,
+                                self.total_com_mao_de_obra_text,
+                                self.mao_de_obra_text,
+                                ft.Row(
                                     [
                                         ft.Text("Mão de Obra (R$):", width=120),
                                         self.preco_mao_de_obra_field,
-                                    
+                                        ft.TextButton(
+                                            "Visualizar OS", on_click=self.visualizar_os
+                                        ),
+                                        ft.TextButton(
+                                            "Criar OS",
+                                            on_click=self.criar_ordem_servico,
+                                        ),
+                                    ],
+                                    spacing=10,
+                                    alignment=ft.MainAxisAlignment.START,
                                 ),
-                                ft.TextButton(
-                                    "Criar OS",
-                                    on_click=self.criar_ordem_servico,
-                                ),
-                                ft.TextButton(
-                                    "Visualizar OS", on_click=self.visualizar_os
-                                ],
-                            ),
-                        
-                    ],
-                )
-                        
-                        
-                    ]
-                    ),
-                
-                
-                    ]
-                        
-                                                            
-                                    
-                                
-                                
-                            ]
+                            ],
+                            spacing=10,
+                            alignment=ft.MainAxisAlignment.START,
                         ),
                     ],
-                    scroll=ft.ScrollMode.AUTO,
+                    spacing=20,  # Espaçamento entre as colunas
+                    alignment=ft.MainAxisAlignment.START,  # Alinha as colunas à esquerda
                 ),
                 width=900,
                 expand=1,
