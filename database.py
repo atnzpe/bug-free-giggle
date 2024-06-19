@@ -6,7 +6,7 @@ import queue
 from datetime import datetime
 
 # BANCO DE DADOS E FILA
-nome_banco_de_dados = "./data/oficina_guarulhos.db"
+nome_banco_de_dados = "c:/big/data/oficina_guarulhos.db"
 # nome_banco_de_dados = "./data/oficina_guarulhosTeste.db"
 # nome_banco_de_dados = "./data/oficina_guarulhosProdução.db"
 
@@ -17,6 +17,7 @@ fila_db = queue.Queue()
 VERSAO_BANCO_DE_DADOS = "1.0"  # Defina a versão do banco de dados aqui
 
 # FUNÇÕES DE BANCO DE DADOS
+
 
 def criar_conexao(banco_de_dados):
     """
@@ -234,8 +235,8 @@ def inserir_dados_iniciais(conexao):
     cursor.execute("INSERT INTO clientes (nome) VALUES ('Maria Oliveira')")
 
     # Inserir carros
-    cursor.execute("INSERT INTO carros (cliente_id, placa) VALUES (1, 'ABC-1234')")
-    cursor.execute("INSERT INTO carros (cliente_id, placa) VALUES (2, 'DEF-5678')")
+    cursor.execute("INSERT INTO carros (cliente_id, modelo, placa) VALUES (1, 'Carro do batman' 'ABC-1234')")
+    cursor.execute("INSERT INTO carros (cliente_id, modelo, placa) VALUES (2, 'Motoloca','DEF-5678')")
 
     # Inserir peças
     cursor.execute(
@@ -270,68 +271,57 @@ def obter_pecas(conexao):
     return cursor.fetchall()
 
 
-<<<<<<< HEAD
 def inserir_ordem_servico(
-    conexao, cliente_id, carro_id, pecas_quantidades, valor_total
+    conexao, cliente_id, carro_id, pecas_quantidades, valor_total, mao_de_obra=0.00
 ):
     """
     Insere uma nova ordem de serviço no banco de dados.
 
     Args:
-        conexao: A conexão com o banco de dados.
-        cliente_id: O ID do cliente.
-        carro_id: O ID do carro.
-        pecas_quantidades: Um dicionário onde as chaves são os IDs das peças
-        e os valores são as quantidades.
-        valor_total: O valor total da ordem de serviço.
+        conexao: A conexão com o banco de dados SQLite.
+        cliente_id (int): O ID do cliente.
+        carro_id (int): O ID do carro.
+        pecas_quantidades (dict): Um dicionário com o ID da peça como chave
+                                e a quantidade como valor.
+        valor_total (float):  O valor total da ordem de serviço.
+        mao_de_obra (float, optional): O valor da mão de obra. Defaults to 0.00.
     """
-=======
-def inserir_ordem_servico(conexao, cliente_id, carro_id, pecas_quantidades, valor_total):
-    """Insere uma nova ordem de serviço no banco de dados."""
->>>>>>> feat/botao-relatorios
     try:
-        print("Peças e quantidades recebidas em inserir_ordem_servico:", pecas_quantidades)
         cursor = conexao.cursor()
-
-<<<<<<< HEAD
-        # Obtem a Dta e Hora
-=======
-        # Obtém a Data e Hora
->>>>>>> feat/botao-relatorios
-        data_hora = datetime.now()
-
-        # Inserir a ordem de serviço com data_hora e valor_total
         cursor.execute(
             """
-            INSERT INTO ordem_servico (cliente_id, carro_id, data_criacao, valor_total)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO OrdensDeServico (cliente_id, carro_id, data_criacao, valor_total, mao_de_obra)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (cliente_id, carro_id, data_hora, valor_total),
+            (
+                cliente_id,
+                carro_id,
+                datetime.now(),
+                valor_total,
+                mao_de_obra,
+            ),
         )
+        conexao.commit()
+
         ordem_servico_id = cursor.lastrowid
 
-        # Inserir peças na tabela PecasOrdemServico
         for peca_id, quantidade in pecas_quantidades.items():
-            print(f"Inserindo peça {peca_id} com quantidade {quantidade} na OS {ordem_servico_id}")
             cursor.execute(
                 """
-                INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
+                INSERT INTO OrdensDeServico_Pecas (os_id, peca_id, quantidade)
                 VALUES (?, ?, ?)
                 """,
                 (ordem_servico_id, peca_id, quantidade),
             )
         conexao.commit()
         return ordem_servico_id
-
-    except Exception as e:
-        print(f"Erro em inserir_ordem_servico: {e}")
+    except sqlite3.Error as e:
+        print(f"Erro ao inserir ordem de serviço: {e}")
+        conexao.rollback()
         return None
 
 
-<<<<<<< HEAD
 # Atualiza o estoque da peça.
-=======
->>>>>>> feat/botao-relatorios
 def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
     """Atualiza o estoque da peça."""
     try:
@@ -388,9 +378,13 @@ def atualizar_carro(carro_id, cliente_id, conexao=None):
 def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
     """Verifica se a quantidade em estoque é suficiente para a peça."""
     try:
-        print(f"Verificando estoque da peça {peca_id}. Quantidade necessária: {quantidade_necessaria}")
+        print(
+            f"Verificando estoque da peça {peca_id}. Quantidade necessária: {quantidade_necessaria}"
+        )
         cursor = conexao.cursor()
-        cursor.execute("SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,))
+        cursor.execute(
+            "SELECT quantidade_em_estoque FROM pecas WHERE id = ?", (peca_id,)
+        )
         resultado = cursor.fetchone()
 
         if resultado is None:
@@ -405,29 +399,11 @@ def quantidade_em_estoque_suficiente(conexao, peca_id, quantidade_necessaria):
         print(f"Erro em quantidade_em_estoque_suficiente: {e}")
         return False
 
-<<<<<<< HEAD
-
-# database.py
-
 
 def inserir_movimentacao_peca(
     conexao, peca_id, tipo_movimentacao, quantidade, ordem_servico_id
 ):
-    """
-    Insere uma nova movimentação de peça no banco de dados.
-
-    Args:
-        conexao: A conexão com o banco de dados.
-        peca_id: O ID da peça.
-        tipo_movimentacao: 'entrada' ou 'saida'.
-        quantidade: A quantidade da peça movimentada.
-        ordem_servico_id: O ID da ordem de serviço (se aplicável).
-    """
-=======
-
-def inserir_movimentacao_peca(conexao, peca_id, tipo_movimentacao, quantidade, ordem_servico_id):
     """Insere uma nova movimentação de peça no banco de dados."""
->>>>>>> feat/botao-relatorios
     try:
         cursor = conexao.cursor()
         cursor.execute(

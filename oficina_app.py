@@ -23,12 +23,11 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from flet import UserControl  # Certifique-se de importar os componentes necessários
-<<<<<<< HEAD
+
 from editar_cliente import EditarCliente # Importe a classe EditarCliente
-=======
+
 
 from report import gerar_relatorio_os,gerar_relatorio_estoque,abrir_modal_os_por_cliente
->>>>>>> feat/botao-relatorios
 from os_formulario import OrdemServicoFormulario
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
@@ -57,34 +56,32 @@ class OficinaApp:
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.cliente_selecionado = None
         self.carro_selecionado = None
-        self.ordem_servico_formulario = OrdemServicoFormulario
-<<<<<<< HEAD
         
-
-=======
         self.conexao = criar_conexao(nome_banco_de_dados)
->>>>>>> feat/botao-relatorios
+        self.conexao_db = criar_conexao(nome_banco_de_dados)
+        conexao_db = criar_conexao(nome_banco_de_dados)
+        conexao = conexao_db
         self.carregar_dados()
+        self.peca_dropdown = []
+        self.peca_dropdown = ft.Dropdown(width=200)
 
         self.oficina = Oficina()
         self.usuario_atual = None
-        self.cliente_selecionado = None
         self.clientes_dropdown = ft.Dropdown(width=300)
+        
 
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
-        conexao_db = criar_conexao(nome_banco_de_dados)
-        conexao = conexao_db
-        self.conexao = criar_conexao(nome_banco_de_dados)
         
         # Carregue os dados primeiro
         self.pecas, self.clientes = self.carregar_dados()
-
+        self.carregar_dados()
+        
         # Inicializa o formulario_os com os argumentos necessários
         self.ordem_servico_formulario = OrdemServicoFormulario(
-            self.page, self, self.pecas, self.clientes
+            page, self, self.pecas, self.clientes
         )
-
+        #self.ordem_servico_formulario = OrdemServicoFormulario(page, self, pecas, clientes)
         # Carrega o Dropdown ao Iniciar
         self.carregar_clientes_no_dropdown()
 
@@ -93,11 +90,8 @@ class OficinaApp:
         
         
 
-        self.build_ui()
-        # Criar OrdemServicoFormulario passando self.pecas como argumento
-        self.ordem_servico_formulario = OrdemServicoFormulario(
-            self.page, self, self.pecas, self.clientes
-        )
+        #self.build_ui()
+        
 
         # Modal de cadastro de carro
         self.modal_cadastro_carro = ft.AlertDialog(
@@ -142,6 +136,7 @@ class OficinaApp:
     # Botões da Tela Inici
     # 
     # al
+    
     def build(self):
         self.botoes = {
             # Botão de Login
@@ -176,9 +171,9 @@ class OficinaApp:
             ),
             # Gera uma Ordem de Serviço
             "ordem_servico": ft.ElevatedButton(
-                "Criar Ordem de Serviço",
-                on_click=self.ordem_servico_formulario.abrir_modal_os,
-                disabled=True,
+            "Criar Ordem de Serviço",
+            on_click=self.abrir_modal_ordem_servico,  # Chama a função para abrir o modal
+            disabled=True,
             ),
             # Relatórios
             "relatorio": ft.ElevatedButton(
@@ -282,6 +277,16 @@ class OficinaApp:
     # ==================================
     # MOSTRA ALERTAS / FECHAR MODAL
     # ==================================
+    def carregar_dados(self):
+        """Carrega os dados iniciais do formulário."""
+        with criar_conexao(nome_banco_de_dados) as conexao:
+            self.clientes = obter_clientes(conexao)
+            self.pecas = obter_pecas(conexao)
+        # Define as opções do dropdown de peças
+            #self.peca_dropdown.options = [
+            #    ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas
+            #]
+        self.page.update()
 
     def mostrar_alerta(self, mensagem):
         # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
@@ -766,75 +771,23 @@ class OficinaApp:
     # ======================================
     # ORDEM DE SERVIÇO
     # ======================================
-
-    def carregar_carros_no_dropdown_os(self, e):
-        """Carrega a lista de carros no dropdown,
-        baseado no cliente selecionado.
-        """
-        cliente_id = None
-        if self.cliente_dropdown_os.current.value:
-            cliente_id = int(
-                self.cliente_dropdown_os.current.value.split(" (ID: ")[1][:-1]
+    
+    def abrir_modal_ordem_servico(self, e):
+        """Abre o modal da ordem de serviço."""
+        # Crie o modal aqui se ele não for criado no construtor
+        if not hasattr(self, "modal_ordem_servico"):
+            self.modal_ordem_servico = (
+                self.ordem_servico_formulario.criar_modal_ordem_servico()
             )
+            self.page.dialog = self.modal_ordem_servico
 
-        try:
-            with criar_conexao(nome_banco_de_dados) as conexao:
-                if cliente_id:
-                    carros = self.obter_carros_por_cliente(conexao, cliente_id)
-                    self.ordem_servico_formulario.carro_dropdown_os.current.options = [
-                        ft.dropdown.Option(f"{carro[1]} (ID: {carro[0]})")
-                        for carro in carros
-                    ]
-                else:
-                    self.ordem_servico_formulario.carro_dropdown_os.current.options = []
-                self.page.update()
-        except Exception as e:
-            print(f"Erro ao carregar carros no dropdown: {e}")
+        # Abra o modal
+        self.modal_ordem_servico.open = True
+        self.page.update()
 
-    def carregar_clientes_no_dropdown_os(self, e):
-        """Carrega a lista de clientes no dropdown."""
-        try:
-            with criar_conexao(nome_banco_de_dados) as conexao:
-                clientes = obter_clientes(conexao)  # Consulte o banco de dados
-                self.cliente_dropdown_os.options = [
-                    ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
-                    for cliente in clientes
-                ]
-                self.page.update()
-        except Exception as e:
-            print(f"Erro ao carregar clientes no dropdown: {e}")
-
-    def carregar_dados(self):
-        with criar_conexao(nome_banco_de_dados) as conexao:
-            clientes = obter_clientes(conexao)
-            carros = []  # Inicialmente vazio
-            pecas = obter_pecas(conexao)
-            return pecas, clientes  # Retorne pecas e clientes
-
-    def build_ui(self):
-
-        # Mova a instanciação de OrdemServicoFormulario para cá
-        self.formulario_os = OrdemServicoFormulario(
-            self.page, self, self.pecas, self.clientes
-        )
-
-        self.modal_ordem_servico = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Criar Ordem de Serviço"),
-            content=self.ordem_servico_formulario,  # Referenciar o formulário aqui
-            actions=[
-                ft.TextButton(
-                    "Cancelar", on_click=self.ordem_servico_formulario.fechar_modal_os
-                ),
-                ft.TextButton(
-                    "Criar OS",
-                    on_click=self.ordem_servico_formulario.criar_ordem_servico,
-                ),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
 
     # ================================
+    
     # RELATORIOS
     # ================================
 
@@ -842,57 +795,38 @@ class OficinaApp:
         """Abre o modal para selecionar o tipo de relatório."""
 
         self.modal_relatorio = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Gerar Relatório"),
-            content=ft.Column(
-                [
-                    ft.ElevatedButton(
-                        "Relatório OS",
-                        on_click=gerar_relatorio_os(self.conexao, self.page), 
+                    modal=True,
+                    title=ft.Text("Gerar Relatório"),
+                    content=ft.Column(
+                        [
+                            ft.ElevatedButton(
+                                "Relatório OS",
+                                on_click=gerar_relatorio_os(self.conexao, self.page), 
+                            ),
+                            ft.ElevatedButton(
+                                "Saldo de Estoque",
+                                on_click=gerar_relatorio_estoque(self.conexao, self.page),  # Implementar lógica depois
+                            ),
+                            ft.ElevatedButton(
+                                "OS por Cliente",
+                                on_click=abrir_modal_os_por_cliente,  # Implementar lógica depois
+                            ),
+                        ]
                     ),
-                    ft.ElevatedButton(
-                        "Saldo de Estoque",
-                        on_click=gerar_relatorio_estoque(self.conexao, self.page),  # Implementar lógica depois
-                    ),
-                    ft.ElevatedButton(
-                        "OS por Cliente",
-                        on_click=abrir_modal_os_por_cliente,  # Implementar lógica depois
-                    ),
-                ]
-            ),
-            actions=[
-                ft.TextButton("Fechar", on_click=self.fechar_modal),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
+                    actions=[
+                        ft.TextButton("Fechar", on_click=self.fechar_modal),
+                    ],
+                    actions_alignment=ft.MainAxisAlignment.END,
+                )
         self.page.dialog = self.modal_relatorio
         self.modal_relatorio.open = True
         self.page.update()
 
-<<<<<<< HEAD
-    def gerar_relatorio_os(self, e):
-        """Gera um relatório com todas as OSs criadas."""
-        # Implementar lógica para gerar relatório de OSs aqui
-        print("Gerar relatório de OSs...")
-        self.fechar_modal(e)
+    
 
-    def gerar_relatorio_estoque(self, e):
-        """Gera um PDF do estoque."""
-        # Implementar lógica para gerar relatório de estoque aqui
-        print("Gerar relatório de estoque...")
-        self.fechar_modal(e)
-
-    def abrir_modal_os_por_cliente(self, e):
-        """Abre o modal para selecionar as OSs por cliente."""
-        # Implementar lógica para exibir e selecionar OSs por cliente aqui
-        print("Abrir modal de OSs por cliente...")
-        self.fechar_modal(e)
-
-=======
+        
     
     
-    
->>>>>>> feat/botao-relatorios
     # =============================
     # SAIR DO APLICATIVO
     # ============================

@@ -1,4 +1,5 @@
 from fpdf import FPDF
+import os
 import flet as ft
 from database import criar_conexao, nome_banco_de_dados
 import sqlite3
@@ -7,8 +8,7 @@ from flet import SnackBar
 
 def gerar_relatorio_os(conexao, page):
     """
-    Gera um relatório em PDF com todas as Ordens de Serviço (OSs) criadas,
-    incluindo o valor total e a quantidade de peças utilizadas em cada OS.
+    Gera um relatório em PDF com a Data da OS, Cliente, Carro e Valor Total da OS.
 
     Args:
         conexao (sqlite3.Connection): Conexão com o banco de dados.
@@ -21,11 +21,10 @@ def gerar_relatorio_os(conexao, page):
         cursor.execute(
             """
             SELECT 
-                os.id,
-                c.nome AS nome_cliente,
-                car.modelo || ' - ' || car.placa AS carro,
-                os.data_criacao,
-                os.valor_total
+                os.data_criacao,       -- Data da OS
+                c.nome AS nome_cliente,  -- Nome do Cliente
+                car.modelo || ' - ' || car.placa AS carro, -- Carro (Modelo - Placa)
+                os.valor_total         -- Valor Total da OS
             FROM 
                 ordem_servico os
             JOIN 
@@ -36,63 +35,17 @@ def gerar_relatorio_os(conexao, page):
         )
         os_data = cursor.fetchall()
 
-        # Consulta SQL para obter detalhes das peças usadas em cada OS
-        cursor.execute(
-            """
-            SELECT 
-                pos.ordem_servico_id, 
-                SUM(p.preco_venda * pos.quantidade) AS valor_total_pecas, 
-                SUM(pos.quantidade) AS quantidade_total_pecas
-            FROM 
-                PecasOrdemServico pos
-            JOIN 
-                pecas p ON pos.peca_id = p.id
-            GROUP BY 
-                pos.ordem_servico_id
-        """
-        )
-        pecas_data = cursor.fetchall()
-
-        # Criar um dicionário para armazenar as informações das peças por OS
-        pecas_por_os = {}
-        for os_id, valor_total_pecas, quantidade_total_pecas in pecas_data:
-            pecas_por_os[os_id] = {
-                "valor_total_pecas": valor_total_pecas,
-                "quantidade_total_pecas": quantidade_total_pecas,
-            }
-
         # Formatar os dados para o relatório
         headers = [
-            "ID",
+            "Data da OS",
             "Cliente",
             "Carro",
-            "Data",
-            "Valor OS",
-            "Valor Peças",
-            "Qtd. Peças",
+            "Valor Total da OS"
         ]
         data = []
-        valor_total_os = 0
-        quantidade_total_pecas = 0
 
         for row in os_data:
-            os_id = row[0]  # Obtém o ID da OS
-            valor_os = row[4]  # Obtém o valor da OS
-            valor_total_os += valor_os
-
-            # Obter informações de peças para a OS atual
-            pecas_info = pecas_por_os.get(
-                os_id, {"valor_total_pecas": 0, "quantidade_total_pecas": 0}
-            )
-
-            # Adicionar informações de peças à linha da OS
-            row = list(row) + [
-                pecas_info["valor_total_pecas"],
-                pecas_info["quantidade_total_pecas"],
-            ]
-
-            data.append(row)
-            quantidade_total_pecas += pecas_info["quantidade_total_pecas"]
+            data.append(list(row))
 
         # Criar o relatório em PDF
         pdf = FPDF()
@@ -101,25 +54,20 @@ def gerar_relatorio_os(conexao, page):
 
         # Adicionar cabeçalho
         for header in headers:
-            pdf.cell(30, 10, txt=header, border=1)
+            pdf.cell(40, 10, txt=header, border=1)
         pdf.ln()
 
         # Adicionar dados das OSs
         for row in data:
             for item in row:
-                pdf.cell(30, 10, txt=str(item), border=1)
+                pdf.cell(40, 10, txt=str(item), border=1)
             pdf.ln()
 
-        # Adicionar valor total das OSs e quantidade total de peças
-        pdf.cell(40, 10, txt="Valor Total OS:", border=1)
-        pdf.cell(20, 10, txt=str(valor_total_os), border=1)
-        pdf.ln()
-        pdf.cell(40, 10, txt="Qtd. Total Peças:", border=1)
-        pdf.cell(20, 10, txt=str(quantidade_total_pecas), border=1)
-        pdf.ln()
-
         # Salvar o relatório
-        pdf.output("relatorio_os.pdf")
+        pdf.output("c:/big/report/relatorio_ordem_servico.pdf")
+        
+        # Abrir o relatório gerado
+        os.startfile("c:/big/report/relatorio_ordem_servico.pdf")
 
         # Exibir mensagem de sucesso
         page.snack_bar = ft.SnackBar(ft.Text("Relatório de OSs gerado com sucesso!"))
