@@ -55,18 +55,24 @@ class OrdemServicoFormulario(UserControl):
             label="Preço Unitário", width=100, value="0.00"
         )
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
-        self.mao_de_obra_text = ft.Text("l58Mão de Obra: R$ 0.00")
-        self.total_com_mao_de_obra_text = ft.Text("Total com mão de obra: R$ 0.00")
+        self.mao_de_obra_text = ft.Text("Mão de Obra: R$ 0.00")
+        self.total_com_mao_de_obra_text = ft.Text(
+            "Total com mão de obra: R$ 0.00"
+        )
         self.pagamento_avista_text = ft.Text("Pagamento à Vista:")
-        self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores")
+        self.pagamento_cartao_text = ft.Text(
+            "Pagamento No Cartão: Consultar Valores"
+        )
 
-        self.quantidade_field = ft.TextField(label="Quantidade", width=100, value="")
+        self.quantidade_field = ft.TextField(
+            label="Quantidade", width=100, value=""
+        )
         self.adicionar_peca_button = ft.ElevatedButton(
             "Adicionar Peça", on_click=self.adicionar_peca
         )
 
         self.pecas_list_view = ft.ListView(expand=True, height=200)
-        self.valor_total_text = ft.Text("l71Valor Total: R$ 0.00")
+        self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
         self.pecas_selecionadas = []
         self.link_whatsapp = None
 
@@ -80,38 +86,25 @@ class OrdemServicoFormulario(UserControl):
 
         # Define o modal da ordem de serviço
         self.modal_ordem_servico = self.criar_modal_ordem_servico()
-        
-    def limpar_campos_os(self):
-        """Limpa os campos do modal de ordem de serviço."""
-        self.cliente_dropdown.value = None
-        self.carro_dropdown.options = []  # Limpa as opções de carros
-        self.carro_dropdown.value = None
-        self.peca_dropdown.value = None
-        self.preco_unitario_field.value = "0.00"
-        self.quantidade_field.value = "0"
-        self.pecas_selecionadas = []
-        self.pecas_list_view.controls = []
-        self.valor_total_text.value = "Valor Total: R$ 0.00"
-        self.page.update()
 
     def criar_modal_ordem_servico(self):
         self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
-            title=ft.Text("l87Criar Ordem de Serviço"),
+            title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Column(
                 [
-                    ft.Text("1Cliente:", width=100),
+                    ft.Text("Cliente:", width=100),
                     self.cliente_dropdown,
-                    ft.Text("2Carro:", width=100),
+                    ft.Text("Carro:", width=100),
                     self.carro_dropdown,
-                    ft.Text("3Peça:", width=100),
+                    ft.Text("Peça:", width=100),
                     self.peca_dropdown,
-                    ft.Text("4Preço Unitário:", width=100),
+                    ft.Text("Preço Unitário:", width=100),
                     self.preco_unitario_field,
-                    ft.Text("5Quantidade:", width=100),
+                    ft.Text("Quantidade:", width=100),
                     self.quantidade_field,
                     self.adicionar_peca_button,
-                    ft.Text("6Mão de Obra (R$):", width=120),
+                    ft.Text("Mão de Obra (R$):", width=120),
                     self.preco_mao_de_obra_field,
                     # ... (outros campos)
                     self.pecas_list_view,  # Lista de peças com mais espaço
@@ -124,7 +117,7 @@ class OrdemServicoFormulario(UserControl):
                     ft.Row(
                         [
                             ft.ElevatedButton(
-                                "7Criar OS", on_click=self.criar_ordem_servico
+                                "Criar OS", on_click=self.criar_ordem_servico
                             ),
                         ]
                     ),
@@ -132,8 +125,10 @@ class OrdemServicoFormulario(UserControl):
                 scroll=ft.ScrollMode.AUTO,  # Habilitar rolagem se necessário
             ),
             actions=[
-                ft.ElevatedButton("8Visualizar OS", on_click=self.visualizar_os),
-                ft.TextButton("9Cancelar", on_click=self.fechar_modal_os),
+                ft.ElevatedButton(
+                    "Visualizar OS", on_click=self.visualizar_os
+                ),
+                ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
@@ -161,7 +156,9 @@ class OrdemServicoFormulario(UserControl):
     def visualizar_os(self, e):
         """Exibe uma prévia da OS em um novo modal."""
         if not all([self.cliente_dropdown.value, self.carro_dropdown.value]):
-            ft.snack_bar = ft.SnackBar(ft.Text("Preencha os campos Cliente e Carro!"))
+            ft.snack_bar = ft.SnackBar(
+                ft.Text("Preencha os campos Cliente e Carro!")
+            )
             self.page.show_snack_bar(ft.snack_bar)
             return
 
@@ -184,10 +181,14 @@ class OrdemServicoFormulario(UserControl):
                     for peca in self.pecas_selecionadas
                 ],
                 ft.Divider(),
-                ft.Text(self.mao_de_obra_text.value),  # Mão de obra
+                ft.Text(
+                    self.mao_de_obra_text.value
+                ),  # Mão de obra
                 ft.Text(self.total_pecas_text.value),
                 ft.Text(self.total_com_mao_de_obra_text.value),
-                ft.Text(self.pagamento_avista_text.value),  # Pagamento à vista
+                ft.Text(
+                    self.pagamento_avista_text.value
+                ),  # Pagamento à vista
             ]
         )
 
@@ -196,7 +197,9 @@ class OrdemServicoFormulario(UserControl):
             modal=False,  # Permite editar apos visualizar
             title=ft.Text("Pré-visualização da OS"),
             content=conteudo_preview,
-            actions=[ft.TextButton("Fechar", on_click=self.fechar_modal_preview)],
+            actions=[
+                ft.TextButton("Fechar", on_click=self.fechar_modal_preview)
+            ],
         )
 
         # Exibir o modal de pré-visualização
@@ -266,7 +269,9 @@ class OrdemServicoFormulario(UserControl):
         """Atualiza o dropdown de carros quando o cliente é alterado."""
         self.cliente_selecionado = self.cliente_dropdown.value
         if self.cliente_selecionado:
-            cliente_id = int(self.cliente_selecionado.split(" (ID: ")[1][:-1])
+            cliente_id = int(
+                self.cliente_selecionado.split(" (ID: ")[1][:-1]
+            )
             self.carregar_carros_no_dropdown(cliente_id)
         else:
             self.carregar_carros_no_dropdown(None)
@@ -289,7 +294,9 @@ class OrdemServicoFormulario(UserControl):
         self.calcular_valor_total()  # atuazando brancjh
 
     def calcular_valor_total(self):
-        valor_total = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
+        valor_total = sum(
+            peca["valor_total"] for peca in self.pecas_selecionadas
+        )
         self.valor_total_text.value = f"Valor Total: R$ {valor_total:.2f}"
         self.page.update()
 
@@ -314,19 +321,27 @@ class OrdemServicoFormulario(UserControl):
         pecas_quantidades = {}
 
         try:
-            cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
-            carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1].split(",")[0])
+            cliente_id = int(
+                self.cliente_dropdown.value.split(" (ID: ")[1][:-1]
+            )
+            carro_id = int(
+                self.carro_dropdown.value.split(" (ID: ")[1].split(",")[0]
+            )
 
             for peca_selecionada in self.pecas_selecionadas:
                 for peca in self.pecas:
                     if peca[1] == peca_selecionada["nome"]:
                         peca_id = peca[0]
-                        pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
+                        pecas_quantidades[
+                            peca_id
+                        ] = peca_selecionada["quantidade"]
                         break
 
             mao_de_obra = float(self.preco_mao_de_obra_field.value)
             valor_total_os = (
-                sum(peca["valor_total"] for peca in self.pecas_selecionadas)
+                sum(
+                    peca["valor_total"] for peca in self.pecas_selecionadas
+                )
                 + mao_de_obra
             )
 
@@ -353,7 +368,9 @@ class OrdemServicoFormulario(UserControl):
                 # Atualizar estoque e registrar movimentação após criar a OS
                 if ordem_servico_id is not None:
                     for peca_id, quantidade in pecas_quantidades.items():
-                        atualizar_estoque_peca(conexao, peca_id, -quantidade)
+                        atualizar_estoque_peca(
+                            conexao, peca_id, -quantidade
+                        )
                         inserir_movimentacao_peca(
                             conexao,
                             peca_id,
@@ -367,7 +384,9 @@ class OrdemServicoFormulario(UserControl):
             self.abrir_link_whatsapp()
             self.fechar_modal_os(e)
             self.limpar_campos_os()
-            ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
+            ft.snack_bar = ft.SnackBar(
+                ft.Text("Ordem de Serviço criada com sucesso!")
+            )
             self.page.show_snack_bar(ft.snack_bar)
             self.page.update()
 
@@ -378,14 +397,20 @@ class OrdemServicoFormulario(UserControl):
             self.page.show_snack_bar(ft.snack_bar)
         except Exception as e:
             print(f"Erro ao criar ordem de serviço: {e}")
-            ft.snack_bar = ft.SnackBar(ft.Text("Erro ao criar ordem de serviço!"))
+            ft.snack_bar = ft.SnackBar(
+                ft.Text("Erro ao criar ordem de serviço!")
+            )
             self.page.show_snack_bar(ft.snack_bar)
 
     def gerar_texto_os(self, ordem_servico_id):
         """Gera o texto da ordem de serviço para ser usado na mensagem do WhatsApp."""
 
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-        placa_carro = self.carro_dropdown.value.replace(":", "").replace(",", "")
+        placa_carro = (
+            self.carro_dropdown.value.replace(":", "")
+            .replace(",", "")
+            .strip()
+        )
         data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         texto_os = f"Ordem de Serviço - Nº {ordem_servico_id}\n\n"
@@ -402,38 +427,27 @@ class OrdemServicoFormulario(UserControl):
 
     def gerar_link_whatsapp(self, ordem_servico_id):
         try:
-
-            cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-            placa_carro = self.carro_dropdown.value.replace(":", "").replace(",", "")
-
-            # Buscar o número de telefone do cliente (você precisa implementar buscar_numero_cliente)
+            # Verifica se um cliente foi selecionado
             if self.cliente_dropdown.value:
-                cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+                cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[
+                    0
+                ]
+                # Busca o número de telefone do cliente
                 numero_telefone = self.buscar_numero_cliente(cliente_nome)
 
-            # Buscar o número de telefone do cliente
-            if self.cliente_dropdown.value:
-                cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-                numero_telefone = self.buscar_numero_cliente(cliente_nome)
+                if numero_telefone:
+                    mensagem = self.gerar_texto_os(ordem_servico_id)
+                    texto_codificado = urllib.parse.quote(mensagem)
+                    self.link_whatsapp = f"https://web.whatsapp.com/send?phone={numero_telefone}&text={texto_codificado}"
+                    print(f"Link do WhatsApp: {self.link_whatsapp}")
+                    return self.link_whatsapp
+                else:
+                    print(
+                        f"Número de telefone não encontrado para o cliente: {cliente_nome}"
+                    )
+                    return None
             else:
                 print("Erro: Nenhum cliente selecionado no dropdown.")
-                return None
-
-            if numero_telefone:
-                mensagem = self.gerar_texto_os(ordem_servico_id)
-                texto_codificado = urllib.parse.quote(mensagem)
-                link_whatsapp = f"https://web.whatsapp.com/send?phone={numero_telefone}&text={texto_codificado}"
-                print(f"Link do WhatsApp: {link_whatsapp}")
-                self.link_whatsapp = link_whatsapp
-                return link_whatsapp
-
-                # Habilita o botão de enviar por WhatsApp
-                # self.enviar_whatsapp_button.disabled = False
-
-            else:
-                print(
-                    f"Número de telefone não encontrado para o cliente: {cliente_nome}"
-                )
                 return None
         except Exception as e:
             print(f"Erro ao gerar link do WhatsApp: {e}")
@@ -444,7 +458,6 @@ class OrdemServicoFormulario(UserControl):
         Busca o número de telefone de um cliente pelo nome.
 
         Args:
-            conexao: A conexão com o banco de dados SQLite.
             cliente_nome (str): O nome do cliente.
 
         Returns:
@@ -455,22 +468,23 @@ class OrdemServicoFormulario(UserControl):
             with criar_conexao(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
 
-                # Nova linha para debugar
                 consulta_sql = "SELECT telefone FROM clientes WHERE nome = ?"
-                print(f"Consulta SQL: {consulta_sql}, Parâmetros: {cliente_nome}")
+                print(
+                    f"Consulta SQL: {consulta_sql}, Parâmetros: {cliente_nome}"
+                )
                 cursor.execute(
-                    "SELECT telefone FROM clientes WHERE nome = ?", (cliente_nome,)
+                    "SELECT telefone FROM clientes WHERE nome = ?",
+                    (cliente_nome,),
                 )
                 resultado = cursor.fetchone()
                 print(f"Resultado da consulta: {resultado}")
                 if resultado:
                     print(f"Número de telefone encontrado: {resultado[0]}")
-                    # link = self.gerar_link_whatsapp(ordem_servico_id) #certifique-se de ter passado o argumento ordem_servico_id
-                    # print(link)  # Mova o print para dentro do bloco if
-
                     return resultado[0]
                 else:
-                    print(f"Nenhum número de telefone encontrado para {cliente_nome}")
+                    print(
+                        f"Nenhum número de telefone encontrado para {cliente_nome}"
+                    )
                     ft.snack_bar = ft.SnackBar(
                         ft.Text(
                             f"Cliente {cliente_nome} não possui número de telefone cadastrado."
@@ -486,12 +500,20 @@ class OrdemServicoFormulario(UserControl):
     def gerar_pdf_os(self, ordem_servico_id):
         try:
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-            placa_carro = self.carro_dropdown.value.replace(":", "").replace(",", "")
-            data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+            placa_carro = (
+                self.carro_dropdown.value.replace(":", "")
+                .replace(",", "")
+                .strip()
+            )
+            data_hora_criacao = datetime.now().strftime(
+                "%Y%m%d_%H%M%S"
+            )
             nome_arquivo = f"OS{ordem_servico_id}_{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
             caminho_pasta = "c:/big/historico"
             os.makedirs(caminho_pasta, exist_ok=True)
-            caminho_arquivo = os.path.join(caminho_pasta, nome_arquivo)
+            caminho_arquivo = os.path.join(
+                caminho_pasta, nome_arquivo
+            )
 
             doc = SimpleDocTemplate(
                 caminho_arquivo,
@@ -507,9 +529,13 @@ class OrdemServicoFormulario(UserControl):
                 )
             )
             conteudo.append(Spacer(1, 12))
-            conteudo.append(Paragraph(f"Cliente: {cliente_nome}", estilos["Normal"]))
             conteudo.append(
-                Paragraph(f"Placa do Carro: {placa_carro}", estilos["Normal"])
+                Paragraph(f"Cliente: {cliente_nome}", estilos["Normal"])
+            )
+            conteudo.append(
+                Paragraph(
+                    f"Placa do Carro: {placa_carro}", estilos["Normal"]
+                )
             )
             conteudo.append(
                 Paragraph(
@@ -542,7 +568,21 @@ class OrdemServicoFormulario(UserControl):
     def abrir_link_whatsapp(self, e=None):
         if self.link_whatsapp:
             try:
-                print("Abir link!")
+                print("Abrir link!")
                 self.page.launch_url(self.link_whatsapp)
             except Exception as e:
                 print(f"Erro ao abrir o self.link_whatsapp: {e}")
+
+    def limpar_campos_os(self):
+        """Limpa os campos após a criação da ordem de serviço."""
+        self.cliente_dropdown.value = None
+        self.carro_dropdown.value = None
+        self.peca_dropdown.value = None
+        self.preco_unitario_field.value = "0.00"
+        self.quantidade_field.value = ""
+        self.preco_mao_de_obra_field.value = "0.00"
+        self.pecas_selecionadas = []
+        self.atualizar_lista_pecas()
+        self.calcular_valor_total()
+        self.link_whatsapp = None  # Limpa o link após o envio
+        self.page.update()
