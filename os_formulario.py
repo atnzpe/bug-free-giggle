@@ -160,7 +160,7 @@ class OrdemServicoFormulario(UserControl):
         # Obtém os dados da OS
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
-        mao_de_obra = float(self.preco_mao_de_obra_field.value)
+        #mao_de_obra = float(self.preco_mao_de_obra_field.value)
 
         # Cria o conteúdo da pré-visualização
         conteudo_preview = ft.Column(
