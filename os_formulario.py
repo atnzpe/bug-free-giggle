@@ -48,9 +48,9 @@ class OrdemServicoFormulario(UserControl):
         self.clientes = clientes
 
         # Inicializa os componentes da interface
-        self.cliente_dropdown = ft.Dropdown(width=300)
-        self.carro_dropdown = ft.Dropdown(width=300)
-        self.peca_dropdown = ft.Dropdown(width=200)
+        self.cliente_dropdown = ft.Dropdown(width=150)
+        self.carro_dropdown = ft.Dropdown(width=150)
+        self.peca_dropdown = ft.Dropdown(width=150)
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário", width=100, value="0.00"
         )
@@ -58,7 +58,7 @@ class OrdemServicoFormulario(UserControl):
         self.adicionar_peca_button = ft.ElevatedButton(
             "Adicionar Peça", on_click=self.adicionar_peca
         )
-        self.pecas_list_view = ft.ListView(expand=True, height=400)
+        self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00", visible=True)
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
         self.mao_de_obra_text = ft.Text("2Mão de Obra: R$ 0.00")
@@ -88,29 +88,50 @@ class OrdemServicoFormulario(UserControl):
             content=ft.Container(
                 content=ft.Column(
                     [
-                        ft.Text("Cliente:", width=100),
-                        self.cliente_dropdown,
-                        ft.Text("Carro:", width=100),
-                        self.carro_dropdown,
-                        ft.Text("Peça:", width=100),
-                        self.peca_dropdown,
-                        ft.Text("Preço Unitário:", width=100),
-                        self.preco_unitario_field,
-                        ft.Text("Quantidade:", width=100),
-                        self.quantidade_field,
-                        self.adicionar_peca_button,
-                        ft.Text("1Mão de Obra (R$):", width=120),
-                        self.preco_mao_de_obra_field,
-                        self.pecas_list_view,
-                        self.valor_total_text,
-                        self.total_pecas_text,
-                        self.mao_de_obra_text,
-                        self.total_com_mao_de_obra_text,
-                        self.pagamento_avista_text,
-                        self.pagamento_cartao_text,
                         ft.Row(
                             [
-                                ft.ElevatedButton(
+                                ft.Text("Cliente:", width=100),
+                                self.cliente_dropdown,
+                                ft.Text("Carro:", width=100),
+                                self.carro_dropdown,
+                            ]
+                        ),
+                        ft.Row(
+                            [
+                                ft.Text("Peça:", width=100),
+                                self.peca_dropdown,
+                                ft.Text("Preço Unitário:", width=100),
+                                self.preco_unitario_field,
+                            ]
+                        ),
+                        ft.Row(
+                            [
+                                ft.Text("Quantidade:", width=100),
+                                self.quantidade_field,
+                                self.adicionar_peca_button,
+                            ]
+                        ),
+                        ft.Row(
+                            [
+                                self.pecas_list_view,
+                            ]
+                        ),
+                        ft.Row(
+                            [
+                                self.valor_total_text,
+                                self.total_pecas_text,
+                                self.mao_de_obra_text,
+                                self.total_com_mao_de_obra_text,
+                                self.pagamento_avista_text,
+                                self.pagamento_cartao_text,
+                            ]
+                        ),
+                        
+                        ft.Row(
+                            [
+                                ft.Text("1Mão de Obra (R$):", width=120),
+                                self.preco_mao_de_obra_field,
+                                ft.TextButton(
                                     "Criar OS",
                                     on_click=self.criar_ordem_servico,
                                 ),
@@ -119,7 +140,7 @@ class OrdemServicoFormulario(UserControl):
                     ],
                     scroll=ft.ScrollMode.AUTO,
                 ),
-                width=600,
+                width=750,
                 expand=True,
             ),
             actions=[
@@ -160,7 +181,7 @@ class OrdemServicoFormulario(UserControl):
         # Obtém os dados da OS
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
-        #mao_de_obra = float(self.preco_mao_de_obra_field.value)
+        # mao_de_obra = float(self.preco_mao_de_obra_field.value)
 
         # Cria o conteúdo da pré-visualização
         conteudo_preview = ft.Column(
@@ -286,7 +307,7 @@ class OrdemServicoFormulario(UserControl):
         self.calcular_valor_total()
         self.page.update()  # Atualiza a interface após adicionar a peça
 
-    def formatar_moeda(self,valor):
+    def formatar_moeda(self, valor):
         """Formata um valor como moeda brasileira (R$)."""
         return f"R$ {valor:.2f}"
 
