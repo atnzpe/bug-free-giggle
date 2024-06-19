@@ -64,7 +64,7 @@ class OrdemServicoFormulario(UserControl):
         self.adicionar_peca_button = ft.ElevatedButton(
             "Adicionar Peça", on_click=self.adicionar_peca
         )
-        
+
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("l71Valor Total: R$ 0.00")
         self.pecas_selecionadas = []
@@ -80,9 +80,22 @@ class OrdemServicoFormulario(UserControl):
 
         # Define o modal da ordem de serviço
         self.modal_ordem_servico = self.criar_modal_ordem_servico()
+        
+    def limpar_campos_os(self):
+        """Limpa os campos do modal de ordem de serviço."""
+        self.cliente_dropdown.value = None
+        self.carro_dropdown.options = []  # Limpa as opções de carros
+        self.carro_dropdown.value = None
+        self.peca_dropdown.value = None
+        self.preco_unitario_field.value = "0.00"
+        self.quantidade_field.value = "0"
+        self.pecas_selecionadas = []
+        self.pecas_list_view.controls = []
+        self.valor_total_text.value = "Valor Total: R$ 0.00"
+        self.page.update()
 
     def criar_modal_ordem_servico(self):
-        return ft.AlertDialog(
+        self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("l87Criar Ordem de Serviço"),
             content=ft.Column(
@@ -100,7 +113,6 @@ class OrdemServicoFormulario(UserControl):
                     self.adicionar_peca_button,
                     ft.Text("6Mão de Obra (R$):", width=120),
                     self.preco_mao_de_obra_field,
-                    
                     # ... (outros campos)
                     self.pecas_list_view,  # Lista de peças com mais espaço
                     self.valor_total_text,
@@ -111,7 +123,6 @@ class OrdemServicoFormulario(UserControl):
                     self.pagamento_cartao_text,
                     ft.Row(
                         [
-                            
                             ft.ElevatedButton(
                                 "7Criar OS", on_click=self.criar_ordem_servico
                             ),
@@ -121,13 +132,13 @@ class OrdemServicoFormulario(UserControl):
                 scroll=ft.ScrollMode.AUTO,  # Habilitar rolagem se necessário
             ),
             actions=[
-                ft.ElevatedButton(
-                                "8Visualizar OS", on_click=self.visualizar_os
-                            ),
+                ft.ElevatedButton("8Visualizar OS", on_click=self.visualizar_os),
                 ft.TextButton("9Cancelar", on_click=self.fechar_modal_os),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
+
+        return self.modal_ordem_servico
 
     def atualizar_lista_pecas(self):
         self.pecas_list_view.controls = []
