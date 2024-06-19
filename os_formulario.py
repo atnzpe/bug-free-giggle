@@ -87,12 +87,15 @@ class OrdemServicoFormulario(UserControl):
 
     def abrir_modal_ordem_servico(self, e):
         """"Abre o modal da ordem de serviço."""
-        self.modal_ordem_servico.open = True
-        self.page.update()
+        print("tenta abrir")
+        self.criar_modal_ordem_servico()
+        print('abriru modal')
+        #self.modal_ordem_servico.open = True
+        #self.page.update()
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
-        return  ft.AlertDialog(
+        self.modal_ordem_servico =  ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Container(
@@ -166,7 +169,7 @@ class OrdemServicoFormulario(UserControl):
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-        #return self.modal_ordem_servico
+        return self.modal_ordem_servico
 
     def atualizar_mao_de_obra(self, e):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
