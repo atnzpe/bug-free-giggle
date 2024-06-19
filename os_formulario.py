@@ -91,39 +91,44 @@ class OrdemServicoFormulario(UserControl):
         self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
-            content=ft.Column(
-                [
-                    ft.Text("Cliente:", width=100),
-                    self.cliente_dropdown,
-                    ft.Text("Carro:", width=100),
-                    self.carro_dropdown,
-                    ft.Text("Peça:", width=100),
-                    self.peca_dropdown,
-                    ft.Text("Preço Unitário:", width=100),
-                    self.preco_unitario_field,
-                    ft.Text("Quantidade:", width=100),
-                    self.quantidade_field,
-                    self.adicionar_peca_button,
-                    ft.Text("Mão de Obra (R$):", width=120),
-                    self.preco_mao_de_obra_field,
-                    # ... (outros campos)
-                    self.pecas_list_view,
-                    #ft.ListView(expand=True, height=200),# Lista de peças com mais espaço
-                    self.valor_total_text,
-                    self.total_pecas_text,
-                    self.mao_de_obra_text,
-                    self.total_com_mao_de_obra_text,
-                    self.pagamento_avista_text,
-                    self.pagamento_cartao_text,
-                    ft.Row(
-                        [
-                            ft.ElevatedButton(
-                                "Criar OS", on_click=self.criar_ordem_servico
-                            ),
-                        ]
-                    ),
-                ],
-                scroll=ft.ScrollMode.AUTO,  # Habilitar rolagem se necessário
+            content=ft.Container(  # <<<--- Container para responsividade
+                content=ft.Column(
+                    [
+                        ft.Text("Cliente:", width=100),
+                        self.cliente_dropdown,
+                        ft.Text("Carro:", width=100),
+                        self.carro_dropdown,
+                        ft.Text("Peça:", width=100),
+                        self.peca_dropdown,
+                        ft.Text("Preço Unitário:", width=100),
+                        self.preco_unitario_field,
+                        ft.Text("Quantidade:", width=100),
+                        self.quantidade_field,
+                        self.adicionar_peca_button,
+                        ft.Text("Mão de Obra (R$):", width=120),
+                        self.preco_mao_de_obra_field,
+                        # ... (outros campos)
+                        self.pecas_list_view,
+                        # ft.ListView(expand=True, height=200),# Lista de peças com mais espaço
+                        self.valor_total_text,
+                        self.total_pecas_text,
+                        self.mao_de_obra_text,
+                        self.total_com_mao_de_obra_text,
+                        self.pagamento_avista_text,
+                        self.pagamento_cartao_text,
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(
+                                    "Criar OS",
+                                    on_click=self.criar_ordem_servico,
+                                ),
+                            ]
+                        ),
+                    ],
+                    scroll=ft.ScrollMode.AUTO,  # Habilitar rolagem se necessário
+                ),  # <<<--- Movido o parêntese de fechamento do ft.Column para cá
+                width=600,
+                expand=True,
             ),
             actions=[
                 ft.ElevatedButton(
