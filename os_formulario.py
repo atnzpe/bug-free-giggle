@@ -71,7 +71,7 @@ class OrdemServicoFormulario(UserControl):
             "Adicionar Peça", on_click=self.adicionar_peca
         )
 
-        self.pecas_list_view = ft.ListView(expand=True, height=200)
+        self.pecas_list_view = ft.ListView(expand=True, height=400)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00")
         self.pecas_selecionadas = []
         self.link_whatsapp = None
@@ -107,7 +107,8 @@ class OrdemServicoFormulario(UserControl):
                     ft.Text("Mão de Obra (R$):", width=120),
                     self.preco_mao_de_obra_field,
                     # ... (outros campos)
-                    self.pecas_list_view,  # Lista de peças com mais espaço
+                    self.pecas_list_view,
+                    #ft.ListView(expand=True, height=200),# Lista de peças com mais espaço
                     self.valor_total_text,
                     self.total_pecas_text,
                     self.mao_de_obra_text,
@@ -198,7 +199,8 @@ class OrdemServicoFormulario(UserControl):
             title=ft.Text("Pré-visualização da OS"),
             content=conteudo_preview,
             actions=[
-                ft.TextButton("Fechar", on_click=self.fechar_modal_preview)
+                ft.TextButton("Fechar", on_click=self.fechar_modal_preview),
+                ft.TextButton("Enviar OS", on_click=self.criar_ordem_servico)
             ],
         )
 
