@@ -48,8 +48,8 @@ class OrdemServicoFormulario(UserControl):
         self.clientes = clientes
 
         # Inicializa os componentes da interface
-        self.cliente_dropdown = ft.Dropdown(width=130)
-        self.carro_dropdown = ft.Dropdown(width=130)
+        self.cliente_dropdown = ft.Dropdown(width=100)
+        self.carro_dropdown = ft.Dropdown(width=100)
         self.peca_dropdown = ft.Dropdown(width=100)
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário", width=100, value="0.00"
@@ -133,7 +133,7 @@ class OrdemServicoFormulario(UserControl):
                                             on_click=self.criar_ordem_servico,
                                         ),
                                     ],
-                                    spacing=10,
+                                    spacing=20,
                                     alignment=ft.MainAxisAlignment.START,
                                 ),
                             ],
@@ -141,7 +141,7 @@ class OrdemServicoFormulario(UserControl):
                             alignment=ft.MainAxisAlignment.START,
                         ),
                     ],
-                    spacing=20,  # Espaçamento entre as colunas
+                    spacing=50,  # Espaçamento entre as colunas
                     alignment=ft.MainAxisAlignment.START,  # Alinha as colunas à esquerda
                 ),
                 width=900,
