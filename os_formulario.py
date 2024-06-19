@@ -125,6 +125,9 @@ class OrdemServicoFormulario(UserControl):
                                     [
                                         ft.Text("Mão de Obra (R$):", width=120),
                                         self.preco_mao_de_obra_field,
+                                        ft.ElevatedButton(
+                                            "Inserir Mão de Obra",
+                                            on_click=self.atualizar_mao_de_obra,),
                                         ft.TextButton(
                                             "Visualizar OS", on_click=self.visualizar_os
                                         ),
@@ -154,6 +157,21 @@ class OrdemServicoFormulario(UserControl):
         )
 
         return self.modal_ordem_servico
+
+    def atualizar_mao_de_obra(self, e):
+        """Atualiza o valor da mão de obra e recalcula o total da OS."""
+        try:
+            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            self.calcular_valor_total() # Recalcula o valor total da OS
+            print(f"Mão de obra atualizada para: R$ {mao_de_obra:.2f}")
+            # Opcional: Exibir uma mensagem de sucesso para o usuário
+            ft.snack_bar = ft.SnackBar(ft.Text("Mão de obra atualizada com sucesso!"))
+            self.page.show_snack_bar(ft.snack_bar)
+        except ValueError:
+            print("Erro: Valor inválido para a mão de obra.")
+            # Opcional: Exibir uma mensagem de erro para o usuário
+            ft.snack_bar = ft.SnackBar(ft.Text("Valor inválido para a mão de obra."))
+            self.page.show_snack_bar(ft.snack_bar)
 
     def atualizar_lista_pecas(self):
         """Atualiza a lista de peças no modal."""
