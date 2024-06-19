@@ -48,8 +48,8 @@ class OrdemServicoFormulario(UserControl):
         self.clientes = clientes
 
         # Inicializa os componentes da interface
-        self.cliente_dropdown = ft.Dropdown(width=100)
-        self.carro_dropdown = ft.Dropdown(width=100)
+        self.cliente_dropdown = ft.Dropdown(width=150)
+        self.carro_dropdown = ft.Dropdown(width=150)
         self.peca_dropdown = ft.Dropdown(width=100)
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário", width=100, value="0.00"
@@ -86,12 +86,17 @@ class OrdemServicoFormulario(UserControl):
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Container(
+                
                 content=ft.Column(
                     [
                         ft.Row(
                             [
                                 ft.Text("Cliente:", width=100),
                                 self.cliente_dropdown,
+                            ]
+                        ),
+                        ft.Row(
+                            [
                                 ft.Text("Carro:", width=100),
                                 self.carro_dropdown,
                             ]
@@ -100,8 +105,13 @@ class OrdemServicoFormulario(UserControl):
                             [
                                 ft.Text("Peça:", width=100),
                                 self.peca_dropdown,
+                            ]
+                        ),
+                        ft.Row(
+                            [
                                 ft.Text("Preço Unitário:", width=100),
                                 self.preco_unitario_field,
+                                
                             ]
                         ),
                         ft.Row(
@@ -111,40 +121,60 @@ class OrdemServicoFormulario(UserControl):
                                 self.adicionar_peca_button,
                             ]
                         ),
+                    ],
+                ),
+                content=ft.Column(
+                    [
                         ft.Row(
                             [
                                 self.pecas_list_view,
-                                ft.Column([
-                                self.valor_total_text,
-                                self.total_pecas_text,
-                                self.mao_de_obra_text,
-                                self.total_com_mao_de_obra_text,
-                                
-                                
-                                ])
                             ]
                         ),
-                                                
-                        ft.Row(
+                        ft.Column(
                             [
-                                ft.Text("Mão de Obra (R$):", width=120),
-                                self.preco_mao_de_obra_field,
+                                        self.total_pecas_text,
+                                        self.mao_de_obra_text,
+                                        self.total_com_mao_de_obra_text,
+                            ]
+                        ),
+                        ft.Row(
+                                    [
+                                        ft.Text("Mão de Obra (R$):", width=120),
+                                        self.preco_mao_de_obra_field,
+                                    
+                                ),
                                 ft.TextButton(
                                     "Criar OS",
                                     on_click=self.criar_ordem_servico,
-                                    
                                 ),
-                                ft.ElevatedButton("Visualizar OS", on_click=self.visualizar_os),
+                                ft.TextButton(
+                                    "Visualizar OS", on_click=self.visualizar_os
+                                ],
+                            ),
+                        
+                    ],
+                )
+                        
+                        
+                    ]
+                    ),
+                
+                
+                    ]
+                        
+                                                            
+                                    
+                                
+                                
                             ]
                         ),
                     ],
                     scroll=ft.ScrollMode.AUTO,
                 ),
-                width=600,
-                expand=True,
+                width=900,
+                expand=1,
             ),
             actions=[
-                
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
