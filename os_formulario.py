@@ -171,7 +171,7 @@ class OrdemServicoFormulario(UserControl):
                 # Exibe a lista de peças formatada
                 *[
                     ft.Text(
-                        f"{peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
+                        f"Nome{peca['nome']} - Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
                     )
                     for peca in self.pecas_selecionadas
                 ],
