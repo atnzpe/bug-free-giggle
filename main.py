@@ -1,5 +1,5 @@
 
-import flet as ft
+import flet as ft #inclui
 import threading
 from flet import Dropdown, dropdown  # Importa Dropdown e dropdown
 
