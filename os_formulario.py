@@ -223,18 +223,15 @@ class OrdemServicoFormulario(UserControl):
                 # Exibe a lista de peças formatada
                 *[
                     ft.Text(
-                        f"Nome da Peça:{peca['nome']} | Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} x Quantidade Usada: {peca['quantidade']} = Total: R$ {peca['valor_total']:.2f}"
+                        f"Nome{peca['nome']} - Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
                     )
                     for peca in self.pecas_selecionadas
                 ],
                 ft.Divider(),
-                # Mão de obra
+                ft.Text(self.mao_de_obra_text.value),  # Mão de obra
                 ft.Text(self.total_pecas_text.value),
-                ft.Text(self.mao_de_obra_text.value),
                 ft.Text(self.total_com_mao_de_obra_text.value),
-                ft.Text(self.pagamento_avista_text.value),
-                ft.Text(self.pagamento_cartao_text.value),
-                # Pagamento à vista
+                ft.Text(self.pagamento_avista_text.value),  # Pagamento à vista
             ]
         )
 
@@ -250,7 +247,7 @@ class OrdemServicoFormulario(UserControl):
         )
 
         # Exibe o modal de pré-visualização
-        self.page.dialog = modal_preview
+        self.page.dialog = modal_preview #  <<<--- Correção: Define o modal_preview como o diálogo
         modal_preview.open = True
         self.page.update()
 
@@ -366,9 +363,9 @@ class OrdemServicoFormulario(UserControl):
         self.pagamento_avista_text.value = f"Pagamento à Vista: R$ {valor_total_os:.2f}"
         self.page.update()
 
-    def fechar_modal_os(self, e):
+    def fechar_modal_os(self, e,modal):
         """Fecha o modal de ordem de serviço."""
-        self.oficina_app.modal_ordem_servico.open = False  # <<<--- Acessa o modal através de oficina_app
+        modal.open = False
         self.page.update()
 
     def criar_ordem_servico(self):
