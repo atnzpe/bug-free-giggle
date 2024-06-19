@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple, List
 from flet import Dropdown, dropdown  # Importa Dropdown e dropdown
 import flet as ft
 from flet import (
@@ -72,9 +72,13 @@ class OficinaApp:
 
         self.evento_clientes_carregados = threading.Event()
         page.pubsub.subscribe(self._on_message)
-        
+        self.pecas: List[Any] = []  # Inicialize com lista vazia
+        self.clientes: List[Any] = []  # Inicialize com lista vazia
         # Carregue os dados primeiro
-        self.pecas, self.clientes = self.carregar_dados()
+        try:
+            self.pecas, self.clientes = self.carregar_dados()
+        except Exception as e:
+            print(f"Erro ao carregar dados: {e}")
         self.carregar_dados()
         
         # Inicializa o formulario_os com os argumentos necessários
@@ -277,16 +281,26 @@ class OficinaApp:
     # ==================================
     # MOSTRA ALERTAS / FECHAR MODAL
     # ==================================
-    def carregar_dados(self):
-        """Carrega os dados iniciais do formulário."""
+    def carregar_dados(self) -> Tuple[List[Any], List[Any]]:
+        """
+        Carrega peças e clientes do banco de dados.
+
+        Returns:
+            Tuple[List[Any], List[Any]]: Tupla contendo a lista de peças e a lista de clientes.
+                Levanta uma exceção caso ocorra algum erro durante o processo.
+        """
         with criar_conexao(nome_banco_de_dados) as conexao:
-            self.clientes = obter_clientes(conexao)
-            self.pecas = obter_pecas(conexao)
-        # Define as opções do dropdown de peças
-            #self.peca_dropdown.options = [
-            #    ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas
-            #]
-        self.page.update()
+            try:
+                clientes = obter_clientes(conexao)
+                pecas = obter_pecas(conexao)
+                
+                # Verifique se as listas não estão vazias
+                if not clientes or not pecas:
+                    raise Exception("A lista de clientes ou peças está vazia!")
+                
+                return pecas, clientes 
+            except Exception as e:
+                raise Exception(f"Erro ao carregar dados do banco de dados: {e}")
 
     def mostrar_alerta(self, mensagem):
         # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
