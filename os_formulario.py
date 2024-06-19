@@ -62,8 +62,9 @@ class OrdemServicoFormulario(UserControl):
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00", visible=True)
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
         self.mao_de_obra_text = ft.Text("Mão de Obra: R$ 0.00")
+
         self.total_com_mao_de_obra_text = ft.Text("Total com mão de obra: R$ 0.00")
-        self.pagamento_avista_text = ft.Text("Pagamento à Vista:")
+        self.pagamento_avista_text = ft.Text("Pagamento à Vista: R$ 0.00")
         self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores")
         self.preco_mao_de_obra_field = ft.TextField(
             label="Mão de Obra (R$)", width=100, value="0.00"
@@ -115,9 +116,11 @@ class OrdemServicoFormulario(UserControl):
                         ft.Column(  # Segunda Coluna
                             [
                                 self.pecas_list_view,
+                                ft.Divider(),
                                 self.total_pecas_text,
-                                self.total_com_mao_de_obra_text,
                                 self.mao_de_obra_text,
+                                self.total_com_mao_de_obra_text,
+                                ft.Divider(),
                                 ft.Row(
                                     [
                                         ft.Text("Mão de Obra (R$):", width=120),
@@ -197,6 +200,7 @@ class OrdemServicoFormulario(UserControl):
 
     def visualizar_os(self, e):
         """Exibe uma prévia da OS em um novo modal."""
+        print("Pre Visualizar OS!")
         if not all([self.cliente_dropdown.value, self.carro_dropdown.value]):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha os campos Cliente e Carro!"))
             self.page.show_snack_bar(ft.snack_bar)
@@ -216,15 +220,18 @@ class OrdemServicoFormulario(UserControl):
                 # Exibe a lista de peças formatada
                 *[
                     ft.Text(
-                        f"Nome{peca['nome']} - Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
+                        f"Nome da Peça:{peca['nome']} | Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} x Quantidade Usada: {peca['quantidade']} = Total: R$ {peca['valor_total']:.2f}"
                     )
                     for peca in self.pecas_selecionadas
                 ],
                 ft.Divider(),
-                ft.Text(self.mao_de_obra_text.value),  # Mão de obra
+                # Mão de obra
                 ft.Text(self.total_pecas_text.value),
+                ft.Text(self.mao_de_obra_text.value),
                 ft.Text(self.total_com_mao_de_obra_text.value),
-                ft.Text(self.pagamento_avista_text.value),  # Pagamento à vista
+                ft.Text(self.pagamento_avista_text.value),
+                ft.Text(self.pagamento_cartao_text.value),
+                # Pagamento à vista
             ]
         )
 
@@ -240,14 +247,15 @@ class OrdemServicoFormulario(UserControl):
         )
 
         # Exibe o modal de pré-visualização
-        self.page.dialog = self.modal_ordem_servico
+        self.page.dialog = modal_preview
         modal_preview.open = True
         self.page.update()
 
     def fechar_modal_preview(self, e):
         """Fecha o modal de pré-visualização."""
-        self.page.dialog.open = False
-        self.page.update()
+        if self.page.dialog:
+            self.page.dialog.open = False
+            self.page.update()
 
     def remover_peca(self, index):
         """Remove uma peça da lista de peças selecionadas."""
@@ -352,6 +360,7 @@ class OrdemServicoFormulario(UserControl):
         self.total_com_mao_de_obra_text.value = (
             f"Total com mão de obra: R$ {self.formatar_moeda(valor_total_os)}"
         )
+        self.pagamento_avista_text.value = f"Pagamento à Vista: R$ {valor_total_os:.2f}"
         self.page.update()
 
     def fechar_modal_os(self, e):
