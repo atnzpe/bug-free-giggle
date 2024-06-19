@@ -89,7 +89,7 @@ class OficinaApp:
         #self.ordem_servico_formulario = OrdemServicoFormulario(page, self, pecas, clientes)
         # Carrega o Dropdown ao Iniciar
         self.carregar_clientes_no_dropdown()
-
+        self.ordem_servico_formulario = OrdemServicoFormulario(page, self, [], [])
         # Chama a Função de criar usuario Admin
         criar_usuario_admin(conexao)
         
@@ -175,7 +175,7 @@ class OficinaApp:
                 disabled=True,
             ),
             # Gera uma Ordem de Serviço
-            self.ordem_servico = ft.ElevatedButton(
+            "ordem_servico": ft.ElevatedButton(
             "Criar Ordem de Serviço",
             on_click=self.ordem_servico_formulario.abrir_modal_ordem_servico,  # Chama a função para abrir o modal
             disabled=True,
