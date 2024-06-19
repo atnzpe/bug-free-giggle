@@ -48,9 +48,9 @@ class OrdemServicoFormulario(UserControl):
         self.clientes = clientes
 
         # Inicializa os componentes da interface
-        self.cliente_dropdown = ft.Dropdown(width=150)
-        self.carro_dropdown = ft.Dropdown(width=150)
-        self.peca_dropdown = ft.Dropdown(width=150)
+        self.cliente_dropdown = ft.Dropdown(width=100)
+        self.carro_dropdown = ft.Dropdown(width=100)
+        self.peca_dropdown = ft.Dropdown(width=100)
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário", width=100, value="0.00"
         )
@@ -61,7 +61,7 @@ class OrdemServicoFormulario(UserControl):
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00", visible=True)
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
-        self.mao_de_obra_text = ft.Text("2Mão de Obra: R$ 0.00")
+        self.mao_de_obra_text = ft.Text("Mão de Obra: R$ 0.00")
         self.total_com_mao_de_obra_text = ft.Text("Total com mão de obra: R$ 0.00")
         self.pagamento_avista_text = ft.Text("Pagamento à Vista:")
         self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores")
@@ -114,37 +114,37 @@ class OrdemServicoFormulario(UserControl):
                         ft.Row(
                             [
                                 self.pecas_list_view,
-                            ]
-                        ),
-                        ft.Row(
-                            [
+                                ft.Column([
                                 self.valor_total_text,
                                 self.total_pecas_text,
                                 self.mao_de_obra_text,
                                 self.total_com_mao_de_obra_text,
-                                self.pagamento_avista_text,
-                                self.pagamento_cartao_text,
+                                
+                                
+                                ])
                             ]
                         ),
-                        
+                                                
                         ft.Row(
                             [
-                                ft.Text("1Mão de Obra (R$):", width=120),
+                                ft.Text("Mão de Obra (R$):", width=120),
                                 self.preco_mao_de_obra_field,
                                 ft.TextButton(
                                     "Criar OS",
                                     on_click=self.criar_ordem_servico,
+                                    
                                 ),
+                                ft.ElevatedButton("Visualizar OS", on_click=self.visualizar_os),
                             ]
                         ),
                     ],
                     scroll=ft.ScrollMode.AUTO,
                 ),
-                width=750,
+                width=600,
                 expand=True,
             ),
             actions=[
-                ft.ElevatedButton("Visualizar OS", on_click=self.visualizar_os),
+                
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
