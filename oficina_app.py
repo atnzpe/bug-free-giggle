@@ -52,7 +52,7 @@ class OficinaApp:
 
     def __init__(self, page: ft.Page):
         super().__init__()
-        self.os = OrdemServicoFormulario
+        
         self.page = page
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.cliente_selecionado = None
@@ -83,9 +83,9 @@ class OficinaApp:
         self.carregar_dados()
         
         # Inicializa o formulario_os com os argumentos necessários
-        self.ordem_servico_formulario = OrdemServicoFormulario(
-            page, self, self.pecas, self.clientes
-        )
+        #self.ordem_servico_formulario = OrdemServicoFormulario(
+        #    page, self, self.pecas, self.clientes
+        #)
         #self.ordem_servico_formulario = OrdemServicoFormulario(page, self, pecas, clientes)
         # Carrega o Dropdown ao Iniciar
         self.carregar_clientes_no_dropdown()
@@ -175,9 +175,9 @@ class OficinaApp:
                 disabled=True,
             ),
             # Gera uma Ordem de Serviço
-            "ordem_servico": ft.ElevatedButton(
+            self.ordem_servico = ft.ElevatedButton(
             "Criar Ordem de Serviço",
-            on_click=self.os.abrir_modal_ordem_servico,  # Chama a função para abrir o modal
+            on_click=self.ordem_servico_formulario.abrir_modal_ordem_servico,  # Chama a função para abrir o modal
             disabled=True,
             ),
             # Relatórios
@@ -787,19 +787,7 @@ class OficinaApp:
     # ORDEM DE SERVIÇO
     # ======================================
     
-    def abrir_modal_ordem_servico(self, e):
-        """Abre o modal da ordem de serviço."""
-        # Crie o modal aqui se ele não for criado no construtor
-        if not hasattr(self, "modal_ordem_servico"):
-            self.modal_ordem_servico = (
-                self.ordem_servico_formulario.criar_modal_ordem_servico()
-            )
-            
-            self.page.dialog = self.modal_ordem_servico
-
-        # Abra o modal
-        self.modal_ordem_servico.open = True
-        self.page.update()
+    
         #ft.TextButton("Cancelar", on_click=lambda e: self.ordem_servico_formulario.fechar_modal_os(e, self.modal_ordem_servico)),
 
 

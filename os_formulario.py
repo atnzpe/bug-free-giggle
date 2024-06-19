@@ -72,7 +72,8 @@ class OrdemServicoFormulario(UserControl):
 
         # Cria o modal apenas uma vez no construtor <<<--- Correção
         self.modal_ordem_servico = self.criar_modal_ordem_servico()
-
+        self.page.dialog = self.modal_ordem_servico
+        
         # Inicializa dados da ordem de serviço
         self.pecas_selecionadas = []
         self.link_whatsapp = None
@@ -85,11 +86,13 @@ class OrdemServicoFormulario(UserControl):
         #self.modal_ordem_servico = self.criar_modal_ordem_servico()
 
     def abrir_modal_ordem_servico(self, e):
-        self.criar_modal_ordem_servico()
+        """"Abre o modal da ordem de serviço."""
+        self.modal_ordem_servico.open = True
+        self.page.update()
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
-        self.modal_ordem_servico = ft.AlertDialog(
+        return  ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Container(
@@ -158,12 +161,12 @@ class OrdemServicoFormulario(UserControl):
                 expand=1,
             ),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda e: self.fechar_modal_os(e, self.modal_ordem_servico)),
+                ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-        return self.modal_ordem_servico
+        #return self.modal_ordem_servico
 
     def atualizar_mao_de_obra(self, e):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
@@ -366,9 +369,9 @@ class OrdemServicoFormulario(UserControl):
         self.pagamento_avista_text.value = f"Pagamento à Vista: R$ {valor_total_os:.2f}"
         self.page.update()
 
-    def fechar_modal_os(self, e,modal):
+    def fechar_modal_os(self, e):
         """Fecha o modal de ordem de serviço."""
-        modal.open = False
+        self.modal_ordem_servico.open = False
         self.page.update()
 
     def criar_ordem_servico(self):
@@ -438,7 +441,7 @@ class OrdemServicoFormulario(UserControl):
             self.gerar_pdf_os(ordem_servico_id)
             self.gerar_link_whatsapp(ordem_servico_id)
             self.abrir_link_whatsapp()
-            self.fechar_modal_os(e,self.modal_ordem_servico)
+            self.fechar_modal_os()
             self.limpar_campos_os()
             ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
             self.page.show_snack_bar(ft.snack_bar)
