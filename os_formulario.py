@@ -286,17 +286,21 @@ class OrdemServicoFormulario(UserControl):
         self.calcular_valor_total()
         self.page.update()  # Atualiza a interface após adicionar a peça
 
+    def formatar_moeda(self,valor):
+        """Formata um valor como moeda brasileira (R$)."""
+        return f"R$ {valor:.2f}"
+
     def calcular_valor_total(self):
         """Calcula e atualiza os valores totais da OS, incluindo a mão de obra."""
         valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
         mao_de_obra = float(self.preco_mao_de_obra_field.value)
         valor_total_os = valor_total_pecas + mao_de_obra
 
-        self.valor_total_text.value = f"Valor Total: R$ {valor_total_os:.2f}"
+        self.valor_total_text.value = self.formatar_moeda(valor_total_os)
         self.total_pecas_text.value = f"Total de Peças: R$ {valor_total_pecas:.2f}"
         self.mao_de_obra_text.value = f"Mão de Obra: R$ {mao_de_obra:.2f}"
         self.total_com_mao_de_obra_text.value = (
-            f"Total com mão de obra: R$ {valor_total_os:.2f}"
+            f"Total com mão de obra: R$ {self.formatar_moeda(valor_total_os)}"
         )
         self.page.update()
 
