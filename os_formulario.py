@@ -155,7 +155,7 @@ class OrdemServicoFormulario(UserControl):
                 expand=1,
             ),
             actions=[
-                ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
+                ft.TextButton("Cancelar", on_click=lambda e: self.fechar_modal_os(e, self.modal_ordem_servico)),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
