@@ -52,6 +52,7 @@ class OficinaApp:
 
     def __init__(self, page: ft.Page):
         super().__init__()
+        self.os = OrdemServicoFormulario
         self.page = page
         self.carro_dropdown_os = ft.Dropdown(width=300)
         self.cliente_selecionado = None
@@ -176,7 +177,7 @@ class OficinaApp:
             # Gera uma Ordem de Serviço
             "ordem_servico": ft.ElevatedButton(
             "Criar Ordem de Serviço",
-            on_click=self.abrir_modal_ordem_servico,  # Chama a função para abrir o modal
+            on_click=self.os.abrir_modal_ordem_servico,  # Chama a função para abrir o modal
             disabled=True,
             ),
             # Relatórios

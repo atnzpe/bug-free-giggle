@@ -82,11 +82,14 @@ class OrdemServicoFormulario(UserControl):
         self.carregar_clientes_no_dropdown()
 
         # Define o modal da ordem de serviço
-        self.modal_ordem_servico = self.criar_modal_ordem_servico()
+        #self.modal_ordem_servico = self.criar_modal_ordem_servico()
+
+    def abrir_modal_ordem_servico(self, e):
+        self.criar_modal_ordem_servico()
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
-        return ft.AlertDialog(
+        self.modal_ordem_servico = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
             content=ft.Container(
@@ -160,7 +163,7 @@ class OrdemServicoFormulario(UserControl):
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-        #return self.modal_ordem_servico
+        return self.modal_ordem_servico
 
     def atualizar_mao_de_obra(self, e):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
@@ -435,7 +438,7 @@ class OrdemServicoFormulario(UserControl):
             self.gerar_pdf_os(ordem_servico_id)
             self.gerar_link_whatsapp(ordem_servico_id)
             self.abrir_link_whatsapp()
-            self.fechar_modal_os(e)
+            self.fechar_modal_os(e,self.modal_ordem_servico)
             self.limpar_campos_os()
             ft.snack_bar = ft.SnackBar(ft.Text("Ordem de Serviço criada com sucesso!"))
             self.page.show_snack_bar(ft.snack_bar)
