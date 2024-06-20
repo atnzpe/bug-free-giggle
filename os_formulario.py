@@ -220,11 +220,11 @@ class OrdemServicoFormulario(ft.UserControl):
 
             # Itens em tabela
             os_formatada += "**Itens:**\n"
-            os_formatada += "| Material | Valor peça |\n"
-            os_formatada += "|---|---| \n"
+            os_formatada += "| Material | Quantidade | Valor peça |\n"
+            os_formatada += "|---|---|---| \n"
 
             for peca in self.pecas_selecionadas:
-                os_formatada += f"| {peca['nome']} | R$ {peca['valor_total']:.2f} |\n"
+                os_formatada += f"| {peca['nome']} | {peca['quantidade']} | R$ {peca['valor_total']:.2f} |\n"
 
             # Valores totais
             valor_total_pecas = sum(
@@ -587,17 +587,17 @@ class OrdemServicoFormulario(ft.UserControl):
             data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             # Formatar os itens da OS para a tabela
-            dados_tabela = [["Material", "Valor peça"]]  # Cabeçalho da tabela
+            dados_tabela = [["Material", "Quantidade", "Valor peça"]]  # Cabeçalho
             for peca in self.pecas_selecionadas:
-                dados_tabela.append([peca['nome'], f"R$ {peca['valor_total']:.2f}"])
+                dados_tabela.append([peca['nome'], peca['quantidade'], f"R$ {peca['valor_total']:.2f}"])
 
             # Criar a tabela com ReportLab
             tabela = Table(dados_tabela)
             estilo_tabela = TableStyle([
                 ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Alinhamento à esquerda
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), # Alinhamento vertical
-                ('GRID', (0, 0), (-1, -1), 1, colors_pdf.black),  # Linhas da tabela
-                ('BACKGROUND', (0, 0), (-1, 0), colors_pdf.lightgrey),  # Cabeçalho
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),  # Linhas da tabela
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # Cabeçalho
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Negrito no cabeçalho
             ])
             tabela.setStyle(estilo_tabela)
