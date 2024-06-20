@@ -290,7 +290,7 @@ def inserir_ordem_servico(
         cursor = conexao.cursor()
         cursor.execute(
             """
-            INSERT INTO OrdensDeServico (cliente_id, carro_id, data_criacao, valor_total, mao_de_obra)
+            INSERT INTO ordem_servico (cliente_id, carro_id, data_criacao, valor_total, mao_de_obra)
             VALUES (?, ?, ?, ?, ?)
             """,
             (
@@ -308,7 +308,7 @@ def inserir_ordem_servico(
         for peca_id, quantidade in pecas_quantidades.items():
             cursor.execute(
                 """
-                INSERT INTO OrdensDeServico_Pecas (os_id, peca_id, quantidade)
+                INSERT INTO PecasOrdemServico (os_id, peca_id, quantidade)
                 VALUES (?, ?, ?)
                 """,
                 (ordem_servico_id, peca_id, quantidade),

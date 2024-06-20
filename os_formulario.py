@@ -432,7 +432,7 @@ class OrdemServicoFormulario(ft.UserControl):
                             quantidade,
                             ordem_servico_id,
                         )
-
+                print(ordem_servico_id)
                 # Ordem correta das chamadas:
                 self.gerar_pdf_os(ordem_servico_id)
                 self.gerar_link_whatsapp(ordem_servico_id)
