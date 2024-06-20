@@ -1,7 +1,7 @@
 from fpdf import FPDF
 import os
 import flet as ft
-from database import criar_conexao, nome_banco_de_dados
+from database import criar_conexao_banco_de_dados,banco_de_dados, nome_banco_de_dados
 import sqlite3
 from flet import SnackBar
 

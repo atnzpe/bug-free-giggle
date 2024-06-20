@@ -7,7 +7,7 @@ import queue
 # BANCO DE DADOS E FILA
 nome_banco_de_dados = "c:/big/data/oficina_guarulhos.db"
 banco_de_dados = nome_banco_de_dados
-
+#conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
 # Fila para operações do banco de dados (se necessário)
 fila_db = queue.Queue()
 
@@ -32,6 +32,7 @@ def criar_conexao_banco_de_dados(banco_de_dados):
         print(f"Erro ao conectar ao banco de dados: {e}")
     return conexao
 
+conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
 
 def executar_consulta_sql(conexao, sql, parametros=None):
     """Executa uma consulta SQL na conexão fornecida."""

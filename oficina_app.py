@@ -31,10 +31,10 @@ from report import gerar_relatorio_os,gerar_relatorio_estoque,abrir_modal_os_por
 from os_formulario import OrdemServicoFormulario
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
-    criar_conexao,
+    criar_conexao_banco_de_dados,
     criar_usuario_admin,
     obter_carros_por_cliente,
-    criar_conexao,
+    
     obter_clientes,
     obter_carros_por_cliente,
     obter_pecas,
@@ -58,10 +58,10 @@ class OficinaApp:
         self.cliente_selecionado = None
         self.carro_selecionado = None
         
-        self.conexao = criar_conexao(nome_banco_de_dados)
-        self.conexao_db = criar_conexao(nome_banco_de_dados)
-        conexao_db = criar_conexao(nome_banco_de_dados)
-        conexao = conexao_db
+        self.conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
+        self.conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
+        conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
+        conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
         self.carregar_dados()
         self.peca_dropdown = []
         self.peca_dropdown = ft.Dropdown(width=200)
@@ -290,7 +290,7 @@ class OficinaApp:
             Tuple[List[Any], List[Any]]: Tupla contendo a lista de peças e a lista de clientes.
                 Levanta uma exceção caso ocorra algum erro durante o processo.
         """
-        with criar_conexao(nome_banco_de_dados) as conexao:
+        with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
             try:
                 clientes = obter_clientes(conexao)
                 pecas = obter_pecas(conexao)
@@ -536,7 +536,7 @@ class OficinaApp:
 
     def carregar_clientes_no_dropdown(self):
         try:
-            with criar_conexao(nome_banco_de_dados) as conexao:
+            with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
                 cursor.execute("SELECT id, nome FROM clientes")
                 clientes = cursor.fetchall()
@@ -849,7 +849,7 @@ def processar_fila_db(page):
     Envia mensagens para a thread principal usando pubsub com informações sobre o resultado das operações.
     """
 
-    conexao_db = criar_conexao(nome_banco_de_dados)
+    conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
     try:
         while True:
 

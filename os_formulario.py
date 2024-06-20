@@ -25,7 +25,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
-    criar_conexao,
+    criar_conexao_banco_de_dados,
     obter_carros_por_cliente,
     obter_clientes,
     obter_pecas,

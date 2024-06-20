@@ -29,7 +29,7 @@ import threading
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
-    criar_conexao,
+    criar_conexao_banco_de_dados,
     criar_usuario_admin,
     obter_carros_por_cliente,
     obter_clientes,
