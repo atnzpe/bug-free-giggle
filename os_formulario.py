@@ -507,26 +507,8 @@ class OrdemServicoFormulario(ft.UserControl):
             self.page.show_snack_bar(ft.snack_bar)
 
     def gerar_texto_os(self, ordem_servico_id):
-        """Gera o texto da ordem de serviço para ser usado na mensagem do WhatsApp."""
-
-        cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-        placa_carro = (
-            self.carro_dropdown.value.replace(":", "").replace(",", "").strip()
-        )
-        data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        texto_os = f"Ordem de Serviço - Nº {ordem_servico_id}\n\n"
-        texto_os += f"Cliente: {cliente_nome}\n"
-        texto_os += f"Placa do Carro: {placa_carro}\n"
-        texto_os += f"Data de Criação: {data_hora_criacao}\n\n"
-
-        for peca in self.pecas_selecionadas:
-            texto_os += f"- Peça Utilizada: {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}\n"
-
-        texto_os += f"\nValor Total: R$ {sum(peca['valor_total'] for peca in self.pecas_selecionadas):.2f}"
-
-        return texto_os
-
+        return self.formatar_texto_os(ordem_servico_id)
+    
     def gerar_link_whatsapp(self, ordem_servico_id):
         """Gera o link do WhatsApp com a mensagem da OS."""
         try:
