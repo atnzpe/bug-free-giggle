@@ -246,8 +246,8 @@ class OrdemServicoFormulario(ft.UserControl):
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
         try:
-            # Tenta converter para float, se der erro, assume como 0
-            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            #Corrigindo a leitura da mão de obra
+            mao_de_obra = float(self.preco_mao_de_obra_field.value) if self.preco_mao_de_obra_field.value else 0.00
         except ValueError:
             mao_de_obra = 0.0
 
