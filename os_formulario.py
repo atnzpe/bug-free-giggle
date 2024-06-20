@@ -593,8 +593,11 @@ class OrdemServicoFormulario(ft.UserControl):
             return None
 
     def gerar_pdf_os(self, ordem_servico_id):
+        
         """Gera um arquivo PDF da ordem de serviço."""
         try:
+            texto_os = self.formatar_os(ordem_servico_id)
+
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
             placa_carro = (
                 self.carro_dropdown.value.replace(":", "").replace(",", "").strip()
@@ -610,44 +613,13 @@ class OrdemServicoFormulario(ft.UserControl):
                 pagesize=letter,
                 title=f"Ordem de Serviço - Nº {ordem_servico_id}",
             )
-            conteudo = []
-            estilos = getSampleStyleSheet()
-            conteudo.append(
-                Paragraph(
-                    f"Ordem de Serviço - Nº {ordem_servico_id}",
-                    estilos["Heading1"],
-                )
-            )
-            conteudo.append(Spacer(1, 12))
-            conteudo.append(Paragraph(f"Cliente: {cliente_nome}", estilos["Normal"]))
-            conteudo.append(
-                Paragraph(f"Placa do Carro: {placa_carro}", estilos["Normal"])
-            )
-            conteudo.append(
-                Paragraph(
-                    f"Data de Criação: {data_hora_criacao}",
-                    estilos["Normal"],
-                )
-            )
-            conteudo.append(Spacer(1, 12))
-            for peca in self.pecas_selecionadas:
-                conteudo.append(
-                    Paragraph(
-                        f"- Peça Utilizada: {peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}",
-                        estilos["Normal"],
-                    )
-                )
-            conteudo.append(Spacer(1, 12))
-            conteudo.append(
-                Paragraph(
-                    f"Valor Total: R$ {sum(peca['valor_total'] for peca in self.pecas_selecionadas):.2f}",
-                    estilos["Heading3"],
-                )
-            )
 
-            doc.build(conteudo)
-
+            # Divide o texto em linhas para o PDF
+            linhas_os = texto_os.splitlines()
+            conteudo_pdf = [Paragraph(linha, getSampleStyleSheet()["Normal"]) for linha in linhas_os]
+            doc.build(conteudo_pdf)
             print(f"PDF da OS gerado com sucesso em: {caminho_arquivo}")
+
         except Exception as e:
             print(f"Erro ao gerar PDF da OS: {e}")
 
