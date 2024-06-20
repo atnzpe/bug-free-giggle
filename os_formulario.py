@@ -261,7 +261,7 @@ class OrdemServicoFormulario(ft.UserControl):
     def carregar_clientes_no_dropdown(self):
         """Carrega a lista de clientes no dropdown."""
         try:
-            with criar_conexao(nome_banco_de_dados) as conexao:
+            with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
                 clientes = obter_clientes(conexao)
                 self.cliente_dropdown.options = [
                     ft.dropdown.Option(f"{cliente[1]} (ID: {cliente[0]})")
@@ -278,7 +278,7 @@ class OrdemServicoFormulario(ft.UserControl):
         baseado no cliente selecionado.
         """
         try:
-            with criar_conexao(nome_banco_de_dados) as conexao:
+            with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
                 if cliente_id:
                     carros = obter_carros_por_cliente(conexao, cliente_id)
                     self.carro_dropdown.options = [
@@ -296,7 +296,7 @@ class OrdemServicoFormulario(ft.UserControl):
 
     def carregar_dados(self):
         """Carrega os dados iniciais do formulário."""
-        with criar_conexao(nome_banco_de_dados) as conexao:
+        with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
             self.clientes = obter_clientes(conexao)
             self.pecas = obter_pecas(conexao)
         self.peca_dropdown.options = [
@@ -405,7 +405,7 @@ class OrdemServicoFormulario(ft.UserControl):
                 + mao_de_obra
             )
 
-            with criar_conexao(nome_banco_de_dados) as conexao:
+            with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
                 for peca_id, quantidade in pecas_quantidades.items():
                     if not quantidade_em_estoque_suficiente(
                         conexao, peca_id, quantidade
@@ -514,7 +514,7 @@ class OrdemServicoFormulario(ft.UserControl):
         """
         print(f"Nome do cliente sendo buscado: '{cliente_nome}'")
         try:
-            with criar_conexao(nome_banco_de_dados) as conexao:
+            with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
                 cursor = conexao.cursor()
 
                 consulta_sql = "SELECT telefone FROM clientes WHERE nome = ?"

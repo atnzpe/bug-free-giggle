@@ -32,7 +32,7 @@ def criar_conexao_banco_de_dados(banco_de_dados):
         print(f"Erro ao conectar ao banco de dados: {e}")
     return conexao
 
-conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
+
 
 def executar_consulta_sql(conexao, sql, parametros=None):
     """Executa uma consulta SQL na conexão fornecida."""
@@ -49,15 +49,16 @@ def executar_consulta_sql(conexao, sql, parametros=None):
 
 def criar_usuario_admin(conexao):
     """Cria o usuário administrador 'admin' se ele não existir."""
-    cursor = conexao.cursor()
-    cursor.execute("SELECT 1 FROM usuarios WHERE nome = 'admin'")
-    if not cursor.fetchone():
-        senha_hash = bcrypt.hashpw("admin".encode(), bcrypt.gensalt()).decode()
-        cursor.execute(
-            "INSERT INTO usuarios (nome, senha) VALUES (?, ?)", ("admin", senha_hash)
-        )
-        conexao.commit()
-        print("Usuário 'admin' criado com sucesso!")
+    with criar_conexao_banco_de_dados(banco_de_dados) as conexao:
+        cursor = conexao.cursor()
+        cursor.execute("SELECT 1 FROM usuarios WHERE nome = 'admin'")
+        if not cursor.fetchone():
+            senha_hash = bcrypt.hashpw("admin".encode(), bcrypt.gensalt()).decode()
+            cursor.execute(
+                "INSERT INTO usuarios (nome, senha) VALUES (?, ?)", ("admin", senha_hash)
+            )
+            conexao.commit()
+            print("Usuário 'admin' criado com sucesso!")
 
 
 def criar_tabela_usuarios(conexao):
@@ -266,23 +267,26 @@ def inserir_dados_iniciais(conexao):
 
 def obter_clientes(conexao):
     """Retorna uma lista de todos os clientes."""
-    cursor = conexao.cursor()
-    cursor.execute("SELECT * FROM clientes")
-    return cursor.fetchall()
+    with criar_conexao_banco_de_dados(banco_de_dados) as conexao:
+        cursor = conexao.cursor()
+        cursor.execute("SELECT * FROM clientes")
+        return cursor.fetchall()
 
 
 def obter_carros_por_cliente(conexao, cliente_id):
     """Retorna uma lista de carros de um cliente específico."""
-    cursor = conexao.cursor()
-    cursor.execute("SELECT * FROM carros WHERE cliente_id = ?", (cliente_id,))
-    return cursor.fetchall()
+    with criar_conexao_banco_de_dados(banco_de_dados) as conexao:
+        cursor = conexao.cursor()
+        cursor.execute("SELECT * FROM carros WHERE cliente_id = ?", (cliente_id,))
+        return cursor.fetchall()
 
 
 def obter_pecas(conexao):
     """Retorna uma lista de todas as peças."""
-    cursor = conexao.cursor()
-    cursor.execute("SELECT * FROM pecas")
-    return cursor.fetchall()
+    with criar_conexao_banco_de_dados(banco_de_dados) as conexao:
+        cursor = conexao.cursor()
+        cursor.execute("SELECT * FROM pecas")
+        return cursor.fetchall()
 
 
 def inserir_ordem_servico(
@@ -296,7 +300,7 @@ def inserir_ordem_servico(
         cliente_id (int): O ID do cliente.
         carro_id (int): O ID do carro.
         pecas_quantidades (dict): Dicionário com ID da peça como chave 
-                                  e quantidade como valor.
+                                e quantidade como valor.
         valor_total (float): Valor total da ordem de serviço.
         mao_de_obra (float, optional): Valor da mão de obra. Default: 0.00.
 
@@ -325,7 +329,7 @@ def inserir_ordem_servico(
         for peca_id, quantidade in pecas_quantidades.items():
             cursor.execute(
                 """
-                INSERT INTO PecasOrdemServico (os_id, peca_id, quantidade)
+                INSERT INTO PecasOrdemServico (ordem_servico_id, peca_id, quantidade)
                 VALUES (?, ?, ?)
                 """,
                 (ordem_servico_id, peca_id, quantidade),
@@ -349,22 +353,23 @@ def atualizar_estoque_peca(conexao, peca_id, quantidade_utilizada):
         conexao: A conexão com o banco de dados SQLite.
         peca_id (int): O ID da peça a ser atualizada.
         quantidade_utilizada (int): Quantidade utilizada da peça (valor negativo 
-                                     para saída do estoque).
+                                    para saída do estoque).
     """
     try:
-        cursor = conexao.cursor()
-        cursor.execute(
-            """
-            UPDATE pecas
-            SET quantidade_em_estoque = quantidade_em_estoque + ? 
-            WHERE id = ?
-            """,
-            (quantidade_utilizada, peca_id),
-        )
-        conexao.commit()
-        print(
-            f"Estoque da peça {peca_id} atualizado. Quantidade utilizada: {quantidade_utilizada}"
-        )
+        with criar_conexao_banco_de_dados(banco_de_dados) as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                """
+                UPDATE pecas
+                SET quantidade_em_estoque = quantidade_em_estoque + ? 
+                WHERE id = ?
+                """,
+                (quantidade_utilizada, peca_id),
+            )
+            conexao.commit()
+            print(
+                f"Estoque da peça {peca_id} atualizado. Quantidade utilizada: {quantidade_utilizada}"
+            )
 
     except Exception as e:
         print(f"Erro ao atualizar o estoque da peça: {e}")
