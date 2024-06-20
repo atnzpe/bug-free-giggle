@@ -200,6 +200,41 @@ class OrdemServicoFormulario(ft.UserControl):
             )
         self.page.update()
 
+    def formatar_os(self, ordem_servico_id):
+            """Formata os dados da OS no formato desejado."""
+            cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+            placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
+            data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # Cabeçalho
+            os_formatada = (
+                f"**Ordem de Serviço - Nº {ordem_servico_id}**\n\n"
+            )
+            os_formatada += f"**Cliente:** {cliente_nome}\n"
+            os_formatada += f"**Placa do Carro:** {placa_carro}\n"
+            os_formatada += f"**Data de Criação:** {data_hora_criacao}\n\n"
+
+            # Itens em tabela
+            os_formatada += "**Itens:**\n"
+            os_formatada += "| Material | Valor peça |\n"
+            os_formatada += "|---|---| \n"
+
+            for peca in self.pecas_selecionadas:
+                os_formatada += f"| {peca['nome']} | R$ {peca['valor_total']:.2f} |\n"
+
+            # Valores totais
+            valor_total_pecas = sum(
+                peca["valor_total"] for peca in self.pecas_selecionadas
+            )
+            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            valor_total_os = valor_total_pecas + mao_de_obra
+
+            os_formatada += f"\nValor das Peças: R$ {valor_total_pecas:.2f}\n"
+            os_formatada += f"Valor da Mão de Obra: R$ {mao_de_obra:.2f}\n"
+            os_formatada += f"**Valor Total da OS: R$ {valor_total_os:.2f}**"
+
+            return os_formatada
+
     def visualizar_os(self, e):
         """Exibe uma prévia da OS em um novo modal."""
         print("Pre Visualizar OS!")
