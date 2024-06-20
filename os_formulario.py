@@ -70,9 +70,7 @@ class OrdemServicoFormulario(UserControl):
             label="Mão de Obra (R$)", width=100, value="0.00"
         )
 
-        # Cria o modal apenas uma vez no construtor <<<--- Correção
-        self.modal_ordem_servico = self.criar_modal_ordem_servico()
-        self.page.dialog = self.modal_ordem_servico
+        
         
         # Inicializa dados da ordem de serviço
         self.pecas_selecionadas = []
@@ -86,12 +84,14 @@ class OrdemServicoFormulario(UserControl):
         #self.modal_ordem_servico = self.criar_modal_ordem_servico()
 
     def abrir_modal_ordem_servico(self, e):
-        """"Abre o modal da ordem de serviço."""
-        print("tenta abrir")
-        self.criar_modal_ordem_servico()
-        print('abriru modal')
-        #self.modal_ordem_servico.open = True
-        #self.page.update()
+        """Abre o modal da ordem de serviço."""
+        print("Abrindo modal...")  # Mensagem mais descritiva para debug
+        
+        if not self.modal_ordem_servico:  # Verifica se o modal já foi criado
+            self.criar_modal_ordem_servico() 
+        
+        self.modal_ordem_servico.open = True  # Abre o modal
+        self.page.update()  # Atualiza a interface
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
