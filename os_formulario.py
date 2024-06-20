@@ -355,7 +355,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.pagamento_avista_text.value = f"Pagamento à Vista: R$ {valor_total_os:.2f}"
         self.page.update()
 
-    def fechar_modal_os(self):
+    def fechar_modal_os(self,e):
         """Fecha o modal de ordem de serviço."""
         self.page.dialog.open = False
         self.page.update()
