@@ -37,7 +37,7 @@ from database import (
 )
 
 
-class OrdemServicoFormulario(UserControl):
+class OrdemServicoFormulario(ft.UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
     def __init__(self, page, oficina_app, pecas, clientes):
@@ -70,8 +70,6 @@ class OrdemServicoFormulario(UserControl):
             label="Mão de Obra (R$)", width=100, value="0.00"
         )
 
-        
-        
         # Inicializa dados da ordem de serviço
         self.pecas_selecionadas = []
         self.link_whatsapp = None
@@ -80,19 +78,14 @@ class OrdemServicoFormulario(UserControl):
         self.carregar_dados()
         self.carregar_clientes_no_dropdown()
 
-        # Define o modal da ordem de serviço
-        #self.modal_ordem_servico = self.criar_modal_ordem_servico()
-
     def abrir_modal_ordem_servico(self, e):
         """Abre o modal da ordem de serviço."""
-        print("Abrindo modal...") 
+        print("Abrindo modal...")
         self.criar_modal_ordem_servico()
-        
-         # Atualiza a interface
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
-        print("Tenta criar o modal")
+        print("Criando o modal...")
         dlg = ft.AlertDialog(
             modal=True,
             title=ft.Text("Criar Ordem de Serviço"),
@@ -101,9 +94,9 @@ class OrdemServicoFormulario(UserControl):
                     [
                         ft.Column(  # Primeira Coluna
                             [
-                                ft.Container(  # <<<--- Container para controlar a largura do texto "Cliente:"
+                                ft.Container(
                                     content=ft.Text("Cliente:"),
-                                    width=100,  # Largura desejada para o texto "Cliente:"
+                                    width=100,
                                 ),
                                 self.cliente_dropdown,
                                 ft.Container(content=ft.Text("Carro:"), width=100),
@@ -116,12 +109,12 @@ class OrdemServicoFormulario(UserControl):
                                 self.quantidade_field,
                                 self.adicionar_peca_button,
                             ],
-                            spacing=10,  # Espaçamento entre elementos da coluna
+                            spacing=10,
                             alignment=ft.MainAxisAlignment.START,
                         ),
-                        ft.VerticalDivider(  # <<<--- Separador visual entre as colunas
-                            width=2,  # Largura do separador
-                            color=ft.colors.GREY_400,  # Cor do separador
+                        ft.VerticalDivider(
+                            width=2,
+                            color=ft.colors.GREY_400,
                         ),
                         ft.Column(  # Segunda Coluna
                             [
@@ -155,8 +148,8 @@ class OrdemServicoFormulario(UserControl):
                             alignment=ft.MainAxisAlignment.START,
                         ),
                     ],
-                    spacing=50,  # Espaçamento entre as colunas
-                    alignment=ft.MainAxisAlignment.START,  # Alinha as colunas à esquerda
+                    spacing=50,
+                    alignment=ft.MainAxisAlignment.START,
                 ),
                 width=900,
                 expand=1,
@@ -177,17 +170,14 @@ class OrdemServicoFormulario(UserControl):
             mao_de_obra = float(self.preco_mao_de_obra_field.value)
             self.calcular_valor_total()  # Recalcula o valor total da OS
             print(f"Mão de obra atualizada para: R$ {mao_de_obra:.2f}")
-            # Opcional: Exibir uma mensagem de sucesso para o usuário
             ft.snack_bar = ft.SnackBar(ft.Text("Mão de obra atualizada com sucesso!"))
             self.page.show_snack_bar(ft.snack_bar)
-            # Limpa os campos após atualizar a mão de obra
             self.preco_mao_de_obra_field.value = "0.00"
             self.preco_unitario_field.value = "0.00"
-            self.quantidade_field.value = ""
-            self.page.update()  # Atualiza a interface
+            self.quantidade_field.value = "0"
+            self.page.update()
         except ValueError:
             print("Erro: Valor inválido para a mão de obra.")
-            # Opcional: Exibir uma mensagem de erro para o usuário
             ft.snack_bar = ft.SnackBar(ft.Text("Valor inválido para a mão de obra."))
             self.page.show_snack_bar(ft.snack_bar)
 
@@ -218,18 +208,14 @@ class OrdemServicoFormulario(UserControl):
             self.page.show_snack_bar(ft.snack_bar)
             return
 
-        # Obtém os dados da OS
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
-        # mao_de_obra = float(self.preco_mao_de_obra_field.value)
 
-        # Cria o conteúdo da pré-visualização
         conteudo_preview = ft.Column(
             [
                 ft.Text(f"Cliente: {cliente_nome}"),
                 ft.Text(f"Carro: {carro_descricao}"),
                 ft.Divider(),
-                # Exibe a lista de peças formatada
                 *[
                     ft.Text(
                         f"Nome{peca['nome']} - Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
@@ -237,16 +223,15 @@ class OrdemServicoFormulario(UserControl):
                     for peca in self.pecas_selecionadas
                 ],
                 ft.Divider(),
-                ft.Text(self.mao_de_obra_text.value),  # Mão de obra
+                ft.Text(self.mao_de_obra_text.value),
                 ft.Text(self.total_pecas_text.value),
                 ft.Text(self.total_com_mao_de_obra_text.value),
-                ft.Text(self.pagamento_avista_text.value),  # Pagamento à vista
+                ft.Text(self.pagamento_avista_text.value),
             ]
         )
 
-        # Cria o modal de pré-visualização
         modal_preview = ft.AlertDialog(
-            modal=False,  # Permite editar após visualizar
+            modal=False,
             title=ft.Text("Pré-visualização da OS"),
             content=conteudo_preview,
             actions=[
@@ -255,8 +240,7 @@ class OrdemServicoFormulario(UserControl):
             ],
         )
 
-        # Exibe o modal de pré-visualização
-        self.page.dialog = modal_preview #  <<<--- Correção: Define o modal_preview como o diálogo
+        self.page.dialog = modal_preview
         modal_preview.open = True
         self.page.update()
 
@@ -271,7 +255,7 @@ class OrdemServicoFormulario(UserControl):
         del self.pecas_selecionadas[index]
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
-        self.page.update()  # Atualiza a interface após remover a peça
+        self.page.update()
 
     def carregar_clientes_no_dropdown(self):
         """Carrega a lista de clientes no dropdown."""
@@ -314,7 +298,6 @@ class OrdemServicoFormulario(UserControl):
         with criar_conexao(nome_banco_de_dados) as conexao:
             self.clientes = obter_clientes(conexao)
             self.pecas = obter_pecas(conexao)
-        # Define as opções do dropdown de peças
         self.peca_dropdown.options = [
             ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas
         ]
@@ -346,12 +329,11 @@ class OrdemServicoFormulario(UserControl):
         )
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
-        # Limpa os campos após adicionar uma peça
         self.peca_dropdown.value = None
         self.preco_unitario_field.value = "0.00"
         self.quantidade_field.value = ""
 
-        self.page.update()  # Atualiza a interface após adicionar a peça
+        self.page.update()
 
     def formatar_moeda(self, valor):
         """Formata um valor como moeda brasileira (R$)."""
@@ -372,15 +354,12 @@ class OrdemServicoFormulario(UserControl):
         self.pagamento_avista_text.value = f"Pagamento à Vista: R$ {valor_total_os:.2f}"
         self.page.update()
 
-    def fechar_modal_os(self, e):
+    def fechar_modal_os(self):
         """Fecha o modal de ordem de serviço."""
-        
         self.page.dialog.open = False
         self.page.update()
-        self.limpar_campos_os()
-        #self.limpar_campos_os()# Correção: Removido o argumento 'e'
 
-    def criar_ordem_servico(self,e):
+    def criar_ordem_servico(self, e): # Correção: Adicionado argumento 'e'
         """Cria a ordem de serviço no banco de dados."""
         if not all(
             [
@@ -396,24 +375,36 @@ class OrdemServicoFormulario(UserControl):
         pecas_quantidades = {}
 
         try:
+            # Validação do campo mão de obra
+            mao_de_obra_str = self.preco_mao_de_obra_field.value
+            if not mao_de_obra_str or not mao_de_obra_str.strip():
+                ft.snack_bar = ft.SnackBar(ft.Text("Informe o valor da mão de obra!"))
+                self.page.show_snack_bar(ft.snack_bar)
+                return
+
+            mao_de_obra = float(mao_de_obra_str)
+
             cliente_id = int(self.cliente_dropdown.value.split(" (ID: ")[1][:-1])
             carro_id = int(self.carro_dropdown.value.split(" (ID: ")[1].split(",")[0])
 
+            # Ponto de atenção: Validação da lista self.pecas_selecionadas
             for peca_selecionada in self.pecas_selecionadas:
+                # Certifique-se de que 'nome', 'preco_unitario' 
+                # e 'quantidade' estão presentes e são válidos
+                # ... (implemente a validação aqui) ...
                 for peca in self.pecas:
                     if peca[1] == peca_selecionada["nome"]:
                         peca_id = peca[0]
                         pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
                         break
 
-            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            
             valor_total_os = (
                 sum(peca["valor_total"] for peca in self.pecas_selecionadas)
                 + mao_de_obra
             )
 
             with criar_conexao(nome_banco_de_dados) as conexao:
-                # Verificar a quantidade em estoque ANTES de criar a OS
                 for peca_id, quantidade in pecas_quantidades.items():
                     if not quantidade_em_estoque_suficiente(
                         conexao, peca_id, quantidade
@@ -422,7 +413,6 @@ class OrdemServicoFormulario(UserControl):
                             f"Quantidade insuficiente em estoque para a peça {peca_id}"
                         )
 
-                # Inserir a OS somente se houver estoque suficiente
                 ordem_servico_id = inserir_ordem_servico(
                     conexao,
                     cliente_id,
@@ -432,7 +422,6 @@ class OrdemServicoFormulario(UserControl):
                     mao_de_obra,
                 )
 
-                # Atualizar estoque e registrar movimentação após criar a OS
                 if ordem_servico_id is not None:
                     for peca_id, quantidade in pecas_quantidades.items():
                         atualizar_estoque_peca(conexao, peca_id, -quantidade)
@@ -444,19 +433,19 @@ class OrdemServicoFormulario(UserControl):
                             ordem_servico_id,
                         )
 
-            self.gerar_pdf_os(ordem_servico_id)
-            self.gerar_link_whatsapp(ordem_servico_id)
-            self.abrir_link_whatsapp()  # Abre o link se existir
-            self.limpar_campos_os()  # Limpa os campos após usar
-            self.fechar_modal_os()  # Fecha o modal principal
-            ft.snack_bar = ft.SnackBar(
-                ft.Text("Ordem de Serviço criada com sucesso!")
-            )
-            self.page.show_snack_bar(ft.snack_bar)
-            self.page.update()
+                # Ordem correta das chamadas:
+                self.gerar_pdf_os(ordem_servico_id)
+                self.gerar_link_whatsapp(ordem_servico_id)
+                self.abrir_link_whatsapp()  # Abre o link se existir
+                self.limpar_campos_os()  # Limpa os campos após usar
+                self.fechar_modal_os()  # Fecha o modal principal
+                ft.snack_bar = ft.SnackBar(
+                    ft.Text("Ordem de Serviço criada com sucesso!")
+                )
+                self.page.show_snack_bar(ft.snack_bar)
+                self.page.update()
 
         except ValueError as e:
-            # Exibe a mensagem de erro específica para erros de validação
             print(f"Erro de validação: {e}")
             ft.snack_bar = ft.SnackBar(ft.Text(str(e)))
             self.page.show_snack_bar(ft.snack_bar)
@@ -489,10 +478,8 @@ class OrdemServicoFormulario(UserControl):
     def gerar_link_whatsapp(self, ordem_servico_id):
         """Gera o link do WhatsApp com a mensagem da OS."""
         try:
-            # Verifica se um cliente foi selecionado
             if self.cliente_dropdown.value:
                 cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-                # Busca o número de telefone do cliente
                 numero_telefone = self.buscar_numero_cliente(cliente_nome)
 
                 if numero_telefone:
@@ -626,9 +613,9 @@ class OrdemServicoFormulario(UserControl):
         self.cliente_dropdown.value = None
         self.carro_dropdown.value = None
         self.peca_dropdown.value = None
-        self.preco_unitario_field.value = ""
-        self.quantidade_field.value = ""
-        self.preco_mao_de_obra_field.value = ""
+        self.preco_unitario_field.value = "0"
+        self.quantidade_field.value = "0"
+        self.preco_mao_de_obra_field.value = "0"
         self.pecas_selecionadas = []
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
