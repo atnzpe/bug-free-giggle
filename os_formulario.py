@@ -22,6 +22,8 @@ from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import TableStyle
+from reportlab.platypus import Table
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
