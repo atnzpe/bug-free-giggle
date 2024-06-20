@@ -174,7 +174,7 @@ class OrdemServicoFormulario(ft.UserControl):
             self.page.show_snack_bar(ft.snack_bar)
             self.preco_mao_de_obra_field.value = "0.00"
             self.preco_unitario_field.value = "0.00"
-            self.quantidade_field.value = "0"
+            self.quantidade_field.value = ""
             self.page.update()
         except ValueError:
             print("Erro: Valor inválido para a mão de obra.")
@@ -243,6 +243,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.page.dialog = modal_preview
         modal_preview.open = True
         self.page.update()
+
 
     def fechar_modal_preview(self, e):
         """Fecha o modal de pré-visualização."""
@@ -359,7 +360,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.page.dialog.open = False
         self.page.update()
 
-    def criar_ordem_servico(self, e): # Correção: Adicionado argumento 'e'
+    def criar_ordem_servico(self, e):
         """Cria a ordem de serviço no banco de dados."""
         if not all(
             [
@@ -389,7 +390,7 @@ class OrdemServicoFormulario(ft.UserControl):
 
             # Ponto de atenção: Validação da lista self.pecas_selecionadas
             for peca_selecionada in self.pecas_selecionadas:
-                # Certifique-se de que 'nome', 'preco_unitario' 
+                # Certifique-se de que 'nome', 'preco_unitario'
                 # e 'quantidade' estão presentes e são válidos
                 # ... (implemente a validação aqui) ...
                 for peca in self.pecas:
@@ -413,6 +414,7 @@ class OrdemServicoFormulario(ft.UserControl):
                             f"Quantidade insuficiente em estoque para a peça {peca_id}"
                         )
 
+                # ----> Captura o ID da OS criada <----
                 ordem_servico_id = inserir_ordem_servico(
                     conexao,
                     cliente_id,
@@ -432,13 +434,13 @@ class OrdemServicoFormulario(ft.UserControl):
                             quantidade,
                             ordem_servico_id,
                         )
-                print(ordem_servico_id)
+
                 # Ordem correta das chamadas:
-                self.gerar_pdf_os(ordem_servico_id)
-                self.gerar_link_whatsapp(ordem_servico_id)
+                self.gerar_pdf_os(ordem_servico_id) # ----> Passa o ID da OS <----
+                self.gerar_link_whatsapp(ordem_servico_id) # ----> Passa o ID da OS <----
                 self.abrir_link_whatsapp()  # Abre o link se existir
                 self.limpar_campos_os()  # Limpa os campos após usar
-                self.fechar_modal_os()  # Fecha o modal principal
+                self.fechar_modal_os(e)  # Fecha o modal principal
                 ft.snack_bar = ft.SnackBar(
                     ft.Text("Ordem de Serviço criada com sucesso!")
                 )
