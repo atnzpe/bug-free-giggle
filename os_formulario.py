@@ -40,7 +40,7 @@ from database import (
 class OrdemServicoFormulario(ft.UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
-    def __init__(self, page, oficina_app, pecas, clientes):
+    def __init__(self, page, oficina_app, pecas, clientes):#
         super().__init__()
         self.page = page
         self.oficina_app = oficina_app
