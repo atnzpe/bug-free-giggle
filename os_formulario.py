@@ -235,12 +235,15 @@ class OrdemServicoFormulario(ft.UserControl):
                 ),
                 ft.Divider(),
                 ft.Markdown(f"**Itens:**"),
+                ft.Markdown(f"{'Material':<20} {'Valor Unitário':<15} {'Quantidade':<10} {'Valor Total':>10}"),
+                ft.Divider(),
                 *[
                     ft.Row(
                         [
-                            ft.Text(
-                                f"{peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
-                            ),
+                            ft.Text(f"{peca['nome']:<20}"),
+                            ft.Text(f"R$ {peca['preco_unitario']:<10.2f}"),
+                            ft.Text(f"{peca['quantidade']:<10.2f}"),
+                            ft.Text(f"R$ {peca['valor_total']:>10.2f}"),
                         ]
                     )
                     for peca in self.pecas_selecionadas
@@ -285,11 +288,16 @@ class OrdemServicoFormulario(ft.UserControl):
 
         # Itens em tabela
         os_formatada += "**Itens:**\n"
-        os_formatada += "| Material | Quantidade | Valor peça |\n"
-        os_formatada += "|---|---|---| \n"
+        os_formatada += "| Material | Valor Unitário | Quantidade | Valor Total |\n"
+        os_formatada += "|---|---|---|---| \n"
 
         for peca in self.pecas_selecionadas:
-            os_formatada += f"| {peca['nome']} | {peca['quantidade']} | R$ {peca['valor_total']:.2f} |\n"
+            os_formatada += (
+                f"| {peca['nome']} "
+                f"| R$ {peca['preco_unitario']:.2f} "
+                f"| {peca['quantidade']} "
+                f"| R$ {peca['valor_total']:.2f} |\n"
+            )
 
             # Valores totais
         valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
@@ -590,11 +598,16 @@ class OrdemServicoFormulario(ft.UserControl):
             data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             # Formatar os itens da OS para a tabela
-            dados_tabela = [["Material", "Quantidade", "Valor peça"]]  # Cabeçalho
+            dados_tabela = [["Material", "Valor Unitário", "Quantidade", "Valor Total"]]  # Cabeçalho
             for peca in self.pecas_selecionadas:
                 dados_tabela.append(
-                    [peca["nome"], peca["quantidade"], f"R$ {peca['valor_total']:.2f}"]
-                )
+                [
+                    peca['nome'], 
+                    f"R$ {peca['preco_unitario']:.2f}", 
+                    peca['quantidade'], 
+                    f"R$ {peca['valor_total']:.2f}"
+                ]
+            )
 
             # Criar a tabela com ReportLab
             tabela = Table(dados_tabela)
@@ -618,6 +631,7 @@ class OrdemServicoFormulario(ft.UserControl):
                 peca["valor_total"] for peca in self.pecas_selecionadas
             )
             mao_de_obra = self.maodeobra
+            dados_tabela.append(["Mão de Obra", "", "", f"R$ {mao_de_obra:.2f}"])
             valor_total_os = valor_total_pecas + mao_de_obra
 
             nome_arquivo = f"OS{ordem_servico_id}_{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
