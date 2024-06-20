@@ -81,7 +81,7 @@ class OrdemServicoFormulario(UserControl):
         self.carregar_clientes_no_dropdown()
 
         # Define o modal da ordem de serviço
-        #self.modal_ordem_servico = self.criar_modal_ordem_servico()
+        self.modal_ordem_servico = self.criar_modal_ordem_servico()
 
     def abrir_modal_ordem_servico(self, e):
         """Abre o modal da ordem de serviço."""
