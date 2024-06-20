@@ -44,7 +44,7 @@ from database import (
 class OrdemServicoFormulario(ft.UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
-    def __init__(self, page, oficina_app, pecas, clientes):#
+    def __init__(self, page, oficina_app, pecas, clientes):  #
         super().__init__()
         self.page = page
         self.oficina_app = oficina_app
@@ -66,7 +66,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00", visible=True)
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
         self.mao_de_obra_text = ft.Text("Mão de Obra: R$ 0.00")
-
+        self.maodeobra = 0.0
         self.total_com_mao_de_obra_text = ft.Text("Total com mão de obra: R$ 0.00")
         self.pagamento_avista_text = ft.Text("Pagamento à Vista: R$ 0.00")
         self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores")
@@ -163,7 +163,7 @@ class OrdemServicoFormulario(ft.UserControl):
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
-
+        #self.maodeobra = float(self.preco_mao_de_obra_field.value)
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
@@ -172,6 +172,9 @@ class OrdemServicoFormulario(ft.UserControl):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
         try:
             mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            self.maodeobra = mao_de_obra
+            print(f"Este e a mao_de_obra: {mao_de_obra}")
+            print(self.maodeobra)
             self.calcular_valor_total()  # Recalcula o valor total da OS
             print(f"Mão de obra atualizada para: R$ {mao_de_obra:.2f}")
             ft.snack_bar = ft.SnackBar(ft.Text("Mão de obra atualizada com sucesso!"))
@@ -204,43 +207,12 @@ class OrdemServicoFormulario(ft.UserControl):
             )
         self.page.update()
 
-    def formatar_os(self, ordem_servico_id):
-            """Formata os dados da OS no formato desejado."""
-            cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-            placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
-            data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            # Cabeçalho
-            os_formatada = (
-                f"**Ordem de Serviço - Nº {ordem_servico_id}**\n\n"
-            )
-            os_formatada += f"**Cliente:** {cliente_nome}\n"
-            os_formatada += f"**Placa do Carro:** {placa_carro}\n"
-            os_formatada += f"**Data de Criação:** {data_hora_criacao}\n\n"
-
-            # Itens em tabela
-            os_formatada += "**Itens:**\n"
-            os_formatada += "| Material | Quantidade | Valor peça |\n"
-            os_formatada += "|---|---|---| \n"
-
-            for peca in self.pecas_selecionadas:
-                os_formatada += f"| {peca['nome']} | {peca['quantidade']} | R$ {peca['valor_total']:.2f} |\n"
-
-            # Valores totais
-            valor_total_pecas = sum(
-                peca["valor_total"] for peca in self.pecas_selecionadas
-            )
-            mao_de_obra = float(self.preco_mao_de_obra_field.value)
-            valor_total_os = valor_total_pecas + mao_de_obra
-
-            os_formatada += f"\nValor das Peças: R$ {valor_total_pecas:.2f}\n"
-            os_formatada += f"Valor da Mão de Obra: R$ {mao_de_obra:.2f}\n"
-            os_formatada += f"**Valor Total da OS: R$ {valor_total_os:.2f}**"
-
-            return os_formatada
-
     def visualizar_os(self, e):
         """Exibe uma prévia da OS em um novo modal."""
+        print("Chama atualizar atualizar_mao_de_obra")
+        #print(mao_de_obra)
+        print(self.maodeobra)
+        self.atualizar_mao_de_obra(e)
         print("Pré-Visualizar OS!")
         if not all([self.cliente_dropdown.value, self.carro_dropdown.value]):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha os campos Cliente e Carro!"))
@@ -249,21 +221,24 @@ class OrdemServicoFormulario(ft.UserControl):
 
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
-        try:
-            #Corrigindo a leitura da mão de obra
-            mao_de_obra = float(self.preco_mao_de_obra_field.value) if self.preco_mao_de_obra_field.value else 0.00
-        except ValueError:
-            mao_de_obra = 0.0
-
+        #self.maodeobra = mao_de_obra
+        #print(f"l 219 {mao_de_obra}")
+        
+        # Ler o valor da mão de obra AQUI
+        mao_de_obra = self.maodeobra
+        print(f"Linha 224 {mao_de_obra}")
+        print(self.maodeobra)
         # Calcula o valor total das peças
-        valor_total_pecas = sum(peca['valor_total'] for peca in self.pecas_selecionadas)
+        valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
 
         conteudo_preview = ft.Column(
             [
                 ft.Markdown(f"## Ordem de Serviço"),
                 ft.Markdown(f"**Cliente:** {cliente_nome}"),
                 ft.Markdown(f"**Carro:** {carro_descricao}"),
-                ft.Markdown(f"**Data de Criação:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"),
+                ft.Markdown(
+                    f"**Data de Criação:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                ),
                 ft.Divider(),
                 ft.Markdown(f"**Itens:**"),
                 *[
@@ -279,7 +254,9 @@ class OrdemServicoFormulario(ft.UserControl):
                 ft.Divider(),
                 ft.Markdown(f"**Valor das Peças: R$ {valor_total_pecas:.2f}**"),
                 ft.Markdown(f"**Mão de Obra: R$ {mao_de_obra:.2f}**"),
-                ft.Markdown(f"**Valor Total da OS: R$ {valor_total_pecas + mao_de_obra:.2f}**"),
+                ft.Markdown(
+                    f"**Valor Total da OS: R$ {valor_total_pecas + mao_de_obra:.2f}**"
+                ),
             ],
             alignment=ft.MainAxisAlignment.START,  # Alinha o conteúdo à esquerda
         )
@@ -293,11 +270,43 @@ class OrdemServicoFormulario(ft.UserControl):
                 ft.TextButton("Enviar OS", on_click=self.criar_ordem_servico),
             ],
         )
-
+        print(f"Linha 268 {mao_de_obra}")
+        print(self.maodeobra)
         self.page.dialog = modal_preview
         modal_preview.open = True
         self.page.update()
 
+    def formatar_os(self, ordem_servico_id):
+        """Formata os dados da OS no formato desejado."""
+        cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+        placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
+        data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+        mao_de_obra = self.maodeobra
+
+        # Cabeçalho
+        os_formatada = f"**Ordem de Serviço - Nº {ordem_servico_id}**\n\n"
+        os_formatada += f"**Cliente:** {cliente_nome}\n"
+        os_formatada += f"**Placa do Carro:** {placa_carro}\n"
+        os_formatada += f"**Data de Criação:** {data_hora_criacao}\n\n"
+
+        # Itens em tabela
+        os_formatada += "**Itens:**\n"
+        os_formatada += "| Material | Quantidade | Valor peça |\n"
+        os_formatada += "|---|---|---| \n"
+
+        for peca in self.pecas_selecionadas:
+            os_formatada += f"| {peca['nome']} | {peca['quantidade']} | R$ {peca['valor_total']:.2f} |\n"
+
+            # Valores totais
+        valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
+        mao_de_obra = self.maodeobra
+        valor_total_os = valor_total_pecas + mao_de_obra
+
+        os_formatada += f"\nValor das Peças: R$ {valor_total_pecas:.2f}\n"
+        os_formatada += f"Valor da Mão de Obra: R$ {mao_de_obra:.2f}\n"
+        os_formatada += f"**Valor Total da OS: R$ {valor_total_os:.2f}**"
+
+        return os_formatada
 
     def fechar_modal_preview(self, e):
         """Fecha o modal de pré-visualização."""
@@ -409,7 +418,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.pagamento_avista_text.value = f"Pagamento à Vista: R$ {valor_total_os:.2f}"
         self.page.update()
 
-    def fechar_modal_os(self,e):
+    def fechar_modal_os(self, e):
         """Fecha o modal de ordem de serviço."""
         self.page.dialog.open = False
         self.page.update()
@@ -453,7 +462,6 @@ class OrdemServicoFormulario(ft.UserControl):
                         pecas_quantidades[peca_id] = peca_selecionada["quantidade"]
                         break
 
-            
             valor_total_os = (
                 sum(peca["valor_total"] for peca in self.pecas_selecionadas)
                 + mao_de_obra
@@ -490,8 +498,10 @@ class OrdemServicoFormulario(ft.UserControl):
                         )
 
                 # Ordem correta das chamadas:
-                self.gerar_pdf_os(ordem_servico_id) # ----> Passa o ID da OS <----
-                self.gerar_link_whatsapp(ordem_servico_id) # ----> Passa o ID da OS <----
+                self.gerar_pdf_os(ordem_servico_id)  # ----> Passa o ID da OS <----
+                self.gerar_link_whatsapp(
+                    ordem_servico_id
+                )  # ----> Passa o ID da OS <----
                 self.abrir_link_whatsapp()  # Abre o link se existir
                 self.limpar_campos_os()  # Limpa os campos após usar
                 self.fechar_modal_os(e)  # Fecha o modal principal
@@ -512,7 +522,7 @@ class OrdemServicoFormulario(ft.UserControl):
 
     def gerar_texto_os(self, ordem_servico_id):
         return self.formatar_os(ordem_servico_id)
-    
+
     def gerar_link_whatsapp(self, ordem_servico_id):
         """Gera o link do WhatsApp com a mensagem da OS."""
         try:
@@ -579,8 +589,7 @@ class OrdemServicoFormulario(ft.UserControl):
             return None
 
     def gerar_pdf_os(self, ordem_servico_id):
-        
-        
+
         try:
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
             placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
@@ -589,21 +598,32 @@ class OrdemServicoFormulario(ft.UserControl):
             # Formatar os itens da OS para a tabela
             dados_tabela = [["Material", "Quantidade", "Valor peça"]]  # Cabeçalho
             for peca in self.pecas_selecionadas:
-                dados_tabela.append([peca['nome'], peca['quantidade'], f"R$ {peca['valor_total']:.2f}"])
+                dados_tabela.append(
+                    [peca["nome"], peca["quantidade"], f"R$ {peca['valor_total']:.2f}"]
+                )
 
             # Criar a tabela com ReportLab
             tabela = Table(dados_tabela)
-            estilo_tabela = TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Alinhamento à esquerda
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), # Alinhamento vertical
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),  # Linhas da tabela
-                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # Cabeçalho
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Negrito no cabeçalho
-            ])
+            estilo_tabela = TableStyle(
+                [
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),  # Alinhamento à esquerda
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),  # Alinhamento vertical
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),  # Linhas da tabela
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),  # Cabeçalho
+                    (
+                        "FONTNAME",
+                        (0, 0),
+                        (-1, 0),
+                        "Helvetica-Bold",
+                    ),  # Negrito no cabeçalho
+                ]
+            )
             tabela.setStyle(estilo_tabela)
 
-            valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
-            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            valor_total_pecas = sum(
+                peca["valor_total"] for peca in self.pecas_selecionadas
+            )
+            mao_de_obra = self.maodeobra
             valor_total_os = valor_total_pecas + mao_de_obra
 
             nome_arquivo = f"OS{ordem_servico_id}_{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
@@ -622,15 +642,32 @@ class OrdemServicoFormulario(ft.UserControl):
                     getSampleStyleSheet()["Heading1"],
                 ),
                 Spacer(1, 12),
-                Paragraph(f"**Cliente:** {cliente_nome}", getSampleStyleSheet()["Normal"]),
-                Paragraph(f"**Placa do Carro:** {placa_carro}", getSampleStyleSheet()["Normal"]),
-                Paragraph(f"**Data de Criação:** {data_hora_criacao}", getSampleStyleSheet()["Normal"]),
+                Paragraph(
+                    f"**Cliente:** {cliente_nome}", getSampleStyleSheet()["Normal"]
+                ),
+                Paragraph(
+                    f"**Placa do Carro:** {placa_carro}",
+                    getSampleStyleSheet()["Normal"],
+                ),
+                Paragraph(
+                    f"**Data de Criação:** {data_hora_criacao}",
+                    getSampleStyleSheet()["Normal"],
+                ),
                 Spacer(1, 12),
                 tabela,
                 Spacer(1, 12),
-                Paragraph(f"Valor das Peças: R$ {valor_total_pecas:.2f}", getSampleStyleSheet()["Normal"]),
-                Paragraph(f"Valor da Mão de Obra: R$ {mao_de_obra:.2f}", getSampleStyleSheet()["Normal"]),
-                Paragraph(f"**Valor Total da OS: R$ {valor_total_os:.2f}**", getSampleStyleSheet()["Heading3"]),
+                Paragraph(
+                    f"Valor das Peças: R$ {valor_total_pecas:.2f}",
+                    getSampleStyleSheet()["Normal"],
+                ),
+                Paragraph(
+                    f"Valor da Mão de Obra: R$ {mao_de_obra:.2f}",
+                    getSampleStyleSheet()["Normal"],
+                ),
+                Paragraph(
+                    f"**Valor Total da OS: R$ {valor_total_os:.2f}**",
+                    getSampleStyleSheet()["Heading3"],
+                ),
             ]
             doc.build(conteudo)
             print(f"PDF da OS gerado com sucesso em: {caminho_arquivo}")
