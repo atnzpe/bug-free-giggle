@@ -507,7 +507,7 @@ class OrdemServicoFormulario(ft.UserControl):
             self.page.show_snack_bar(ft.snack_bar)
 
     def gerar_texto_os(self, ordem_servico_id):
-        return self.formatar_texto_os(ordem_servico_id)
+        return self.formatar_os(ordem_servico_id)
     
     def gerar_link_whatsapp(self, ordem_servico_id):
         """Gera o link do WhatsApp com a mensagem da OS."""
@@ -576,15 +576,32 @@ class OrdemServicoFormulario(ft.UserControl):
 
     def gerar_pdf_os(self, ordem_servico_id):
         
-        """Gera um arquivo PDF da ordem de serviço."""
+        
         try:
-            texto_os = self.formatar_os(ordem_servico_id)
-
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
-            placa_carro = (
-                self.carro_dropdown.value.replace(":", "").replace(",", "").strip()
-            )
+            placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
             data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # Formatar os itens da OS para a tabela
+            dados_tabela = [["Material", "Valor peça"]]  # Cabeçalho da tabela
+            for peca in self.pecas_selecionadas:
+                dados_tabela.append([peca['nome'], f"R$ {peca['valor_total']:.2f}"])
+
+            # Criar a tabela com ReportLab
+            tabela = Table(dados_tabela)
+            estilo_tabela = TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  # Alinhamento à esquerda
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), # Alinhamento vertical
+                ('GRID', (0, 0), (-1, -1), 1, colors_pdf.black),  # Linhas da tabela
+                ('BACKGROUND', (0, 0), (-1, 0), colors_pdf.lightgrey),  # Cabeçalho
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Negrito no cabeçalho
+            ])
+            tabela.setStyle(estilo_tabela)
+
+            valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
+            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+            valor_total_os = valor_total_pecas + mao_de_obra
+
             nome_arquivo = f"OS{ordem_servico_id}_{cliente_nome}_{placa_carro}_{data_hora_criacao}.pdf"
             caminho_pasta = "c:/big/historico"
             os.makedirs(caminho_pasta, exist_ok=True)
@@ -595,11 +612,23 @@ class OrdemServicoFormulario(ft.UserControl):
                 pagesize=letter,
                 title=f"Ordem de Serviço - Nº {ordem_servico_id}",
             )
-
-            # Divide o texto em linhas para o PDF
-            linhas_os = texto_os.splitlines()
-            conteudo_pdf = [Paragraph(linha, getSampleStyleSheet()["Normal"]) for linha in linhas_os]
-            doc.build(conteudo_pdf)
+            conteudo = [
+                Paragraph(
+                    f"**Ordem de Serviço - Nº {ordem_servico_id}**",
+                    getSampleStyleSheet()["Heading1"],
+                ),
+                Spacer(1, 12),
+                Paragraph(f"**Cliente:** {cliente_nome}", getSampleStyleSheet()["Normal"]),
+                Paragraph(f"**Placa do Carro:** {placa_carro}", getSampleStyleSheet()["Normal"]),
+                Paragraph(f"**Data de Criação:** {data_hora_criacao}", getSampleStyleSheet()["Normal"]),
+                Spacer(1, 12),
+                tabela,
+                Spacer(1, 12),
+                Paragraph(f"Valor das Peças: R$ {valor_total_pecas:.2f}", getSampleStyleSheet()["Normal"]),
+                Paragraph(f"Valor da Mão de Obra: R$ {mao_de_obra:.2f}", getSampleStyleSheet()["Normal"]),
+                Paragraph(f"**Valor Total da OS: R$ {valor_total_os:.2f}**", getSampleStyleSheet()["Heading3"]),
+            ]
+            doc.build(conteudo)
             print(f"PDF da OS gerado com sucesso em: {caminho_arquivo}")
 
         except Exception as e:
