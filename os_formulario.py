@@ -170,7 +170,6 @@ class OrdemServicoFormulario(UserControl):
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
-        #return self.modal_ordem_servico
 
     def atualizar_mao_de_obra(self, e):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
@@ -375,11 +374,13 @@ class OrdemServicoFormulario(UserControl):
 
     def fechar_modal_os(self, e):
         """Fecha o modal de ordem de serviço."""
+        
         self.page.dialog.open = False
-        #dlg.open = True
-        self.page.update(e)
+        self.page.update()
+        self.limpar_campos_os()
+        #self.limpar_campos_os()# Correção: Removido o argumento 'e'
 
-    def criar_ordem_servico(self):
+    def criar_ordem_servico(self,e):
         """Cria a ordem de serviço no banco de dados."""
         if not all(
             [
