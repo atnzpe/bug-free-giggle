@@ -209,10 +209,6 @@ class OrdemServicoFormulario(ft.UserControl):
 
     def visualizar_os(self, e):
         """Exibe uma prévia da OS em um novo modal."""
-        print("Chama atualizar atualizar_mao_de_obra")
-        #print(mao_de_obra)
-        print(self.maodeobra)
-        self.atualizar_mao_de_obra(e)
         print("Pré-Visualizar OS!")
         if not all([self.cliente_dropdown.value, self.carro_dropdown.value]):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha os campos Cliente e Carro!"))
@@ -221,12 +217,10 @@ class OrdemServicoFormulario(ft.UserControl):
 
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
-        #self.maodeobra = mao_de_obra
-        #print(f"l 219 {mao_de_obra}")
-        
+
         # Ler o valor da mão de obra AQUI
         mao_de_obra = self.maodeobra
-        print(f"Linha 224 {mao_de_obra}")
+        print(f"Linha 221 {mao_de_obra}")
         print(self.maodeobra)
         # Calcula o valor total das peças
         valor_total_pecas = sum(peca["valor_total"] for peca in self.pecas_selecionadas)
@@ -270,7 +264,7 @@ class OrdemServicoFormulario(ft.UserControl):
                 ft.TextButton("Enviar OS", on_click=self.criar_ordem_servico),
             ],
         )
-        print(f"Linha 268 {mao_de_obra}")
+        print(f"Linha 267 {mao_de_obra}")
         print(self.maodeobra)
         self.page.dialog = modal_preview
         modal_preview.open = True
