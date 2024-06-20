@@ -53,7 +53,7 @@ class EditarCliente(UserControl):
         super().__init__()
         self.page = page
         self.oficina_app = oficina_app
-        self.conexao = criar_conexao(nome_banco_de_dados)
+        self.conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
 
         # Inicializa o Dropdown de clientes (vazio inicialmente)
         self.clientes_dropdown = ft.Dropdown(width=150)
@@ -78,6 +78,7 @@ class EditarCliente(UserControl):
 
     def carregar_clientes_no_dropdown(self):
         """Carrega os clientes no Dropdown."""
+        
         try:
             with self.conexao:
                 cursor = self.conexao.cursor()

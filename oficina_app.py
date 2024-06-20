@@ -59,9 +59,10 @@ class OficinaApp:
         self.carro_selecionado = None
         
         self.conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
+        #self.conexao = conexao
         self.conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
         conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
-        conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
+        #conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
         self.carregar_dados()
         self.peca_dropdown = []
         self.peca_dropdown = ft.Dropdown(width=200)
@@ -91,7 +92,7 @@ class OficinaApp:
         self.carregar_clientes_no_dropdown()
         self.ordem_servico_formulario = OrdemServicoFormulario(page, self, [], [])
         # Chama a Função de criar usuario Admin
-        criar_usuario_admin(conexao)
+        criar_usuario_admin(nome_banco_de_dados)
         
         
 
@@ -290,18 +291,24 @@ class OficinaApp:
             Tuple[List[Any], List[Any]]: Tupla contendo a lista de peças e a lista de clientes.
                 Levanta uma exceção caso ocorra algum erro durante o processo.
         """
+        
         with criar_conexao_banco_de_dados(nome_banco_de_dados) as conexao:
             try:
-                clientes = obter_clientes(conexao)
-                pecas = obter_pecas(conexao)
+                self.clientes = obter_clientes(conexao)
+                self.pecas = obter_pecas(conexao)
                 
-                # Verifique se as listas não estão vazias
-                if not clientes or not pecas:
-                    raise Exception("A lista de clientes ou peças está vazia!")
-                
-                return pecas, clientes 
-            except Exception as e:
-                raise Exception(f"Erro ao carregar dados do banco de dados: {e}")
+                if not self.clientes:
+                    raise ValueError("A lista de clientes está vazia!")
+                if not self.pecas:
+                    raise ValueError("A lista de peças está vazia!")
+
+                # ... (resto do código da função carregar_dados) ...
+
+            except sqlite3.Error as e:
+                raise sqlite3.Error(f"Erro ao carregar dados do banco de dados: {e}")
+
+            except ValueError as e: 
+                print(f"Erro ao carregar dados: {e}")
 
     def mostrar_alerta(self, mensagem):
         # O código acima está criando e exibindo uma caixa de diálogo de alerta (AlertDialog) com o título "ATENÇÃO"
