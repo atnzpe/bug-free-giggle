@@ -1,9 +1,8 @@
 import bcrypt
 import sqlite3
 
-from database import criar_conexao, nome_banco_de_dados
-
-
+from database import criar_conexao_banco_de_dados, nome_banco_de_dados
+conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
 class Oficina:
     """
     Representa uma oficina mecânica,
@@ -72,7 +71,7 @@ class Oficina:
             bool: True se o cadastro for realizado com sucesso, False caso contrário.
         """
         try:
-            conexao_db = criar_conexao(nome_banco_de_dados)
+            conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
                 "INSERT INTO clientes (nome, telefone, endereco, email) VALUES (?, ?, ?, ?)",
@@ -93,7 +92,7 @@ class Oficina:
         Returns:
             Cliente: O objeto Cliente se encontrado, None caso contrário.
         """
-        conexao_db = criar_conexao(nome_banco_de_dados)
+        conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
         cursor = conexao_db.cursor()
         cursor.execute("SELECT * FROM clientes WHERE nome=?", (nome,))
         cliente_data = cursor.fetchone()
@@ -114,7 +113,7 @@ class Oficina:
             bool: True se a atualização for realizada com sucesso, False caso contrário.
         """
         try:
-            conexao_db = criar_conexao(nome_banco_de_dados)
+            conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
                 "UPDATE clientes SET nome=?, telefone=?, email=? WHERE nome=?",
@@ -141,7 +140,7 @@ class Oficina:
             bool: True se o cadastro for realizado com sucesso, False caso contrário.
         """
         try:
-            conexao_db = criar_conexao(nome_banco_de_dados)
+            conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
             cursor = conexao_db.cursor()
             cursor.execute(
                 "INSERT INTO carros (modelo, ano, cor, placa, cliente_id) VALUES (?, ?, ?, ?, ?)",
@@ -162,7 +161,7 @@ class Oficina:
         Returns:
             list: Uma lista de objetos Cliente que correspondem à pesquisa.
         """
-        conexao_db = criar_conexao(nome_banco_de_dados)
+        conexao_db = criar_conexao_banco_de_dados(nome_banco_de_dados)
         cursor = conexao_db.cursor()
         cursor.execute(
             """
@@ -203,7 +202,7 @@ class Oficina:
     #Obtém a lista de clientes do banco de dados.
     def obter_clientes(self,conexao):
         """Obtém a lista de clientes do banco de dados."""
-        conexao = criar_conexao(nome_banco_de_dados)
+        conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
         cursor = conexao.cursor()
         cursor.execute("SELECT id, nome FROM clientes")
         return cursor.fetchall()
@@ -211,7 +210,7 @@ class Oficina:
     #Obtém a lista de carros de um cliente específico.
     def obter_carros_por_cliente(self,conexao, cliente_id):
         """Obtém a lista de carros de um cliente específico."""
-        conexao = criar_conexao(nome_banco_de_dados)
+        conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
         cursor = conexao.cursor()
         cursor.execute("SELECT id, placa FROM carros WHERE cliente_id = ?", (cliente_id,))
         return cursor.fetchall()
