@@ -24,6 +24,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import TableStyle
 from reportlab.platypus import Table
+from reportlab.lib import colors
+from reportlab.lib import colors as colors_pdf
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
