@@ -237,7 +237,7 @@ class OrdemServicoFormulario(ft.UserControl):
 
     def visualizar_os(self, e):
         """Exibe uma prévia da OS em um novo modal."""
-        print("Pre Visualizar OS!")
+        print("Pré-Visualizar OS!")
         if not all([self.cliente_dropdown.value, self.carro_dropdown.value]):
             ft.snack_bar = ft.SnackBar(ft.Text("Preencha os campos Cliente e Carro!"))
             self.page.show_snack_bar(ft.snack_bar)
@@ -245,24 +245,39 @@ class OrdemServicoFormulario(ft.UserControl):
 
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
+        try:
+            # Tenta converter para float, se der erro, assume como 0
+            mao_de_obra = float(self.preco_mao_de_obra_field.value)
+        except ValueError:
+            mao_de_obra = 0.0
+
+        # Calcula o valor total das peças
+        valor_total_pecas = sum(peca['valor_total'] for peca in self.pecas_selecionadas)
 
         conteudo_preview = ft.Column(
             [
-                ft.Text(f"Cliente: {cliente_nome}"),
-                ft.Text(f"Carro: {carro_descricao}"),
+                ft.Markdown(f"## Ordem de Serviço"),
+                ft.Markdown(f"**Cliente:** {cliente_nome}"),
+                ft.Markdown(f"**Carro:** {carro_descricao}"),
+                ft.Markdown(f"**Data de Criação:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"),
                 ft.Divider(),
+                ft.Markdown(f"**Itens:**"),
                 *[
-                    ft.Text(
-                        f"Nome{peca['nome']} - Preço Unitário da Peça: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
+                    ft.Row(
+                        [
+                            ft.Text(
+                                f"{peca['nome']} - Preço Unitário: R$ {peca['preco_unitario']:.2f} - Quantidade Usada: {peca['quantidade']} - Total: R$ {peca['valor_total']:.2f}"
+                            ),
+                        ]
                     )
                     for peca in self.pecas_selecionadas
                 ],
                 ft.Divider(),
-                ft.Text(self.mao_de_obra_text.value),
-                ft.Text(self.total_pecas_text.value),
-                ft.Text(self.total_com_mao_de_obra_text.value),
-                ft.Text(self.pagamento_avista_text.value),
-            ]
+                ft.Markdown(f"**Valor das Peças: R$ {valor_total_pecas:.2f}**"),
+                ft.Markdown(f"**Mão de Obra: R$ {mao_de_obra:.2f}**"),
+                ft.Markdown(f"**Valor Total da OS: R$ {valor_total_pecas + mao_de_obra:.2f}**"),
+            ],
+            alignment=ft.MainAxisAlignment.START,  # Alinha o conteúdo à esquerda
         )
 
         modal_preview = ft.AlertDialog(
