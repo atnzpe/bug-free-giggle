@@ -38,11 +38,6 @@ from database import (
     nome_banco_de_dados,
 )
 
-
-# ----> Correção: 'StatefulWidget' não existe no Flet.
-#                  No Flet, usamos a função 'update()' dentro dos métodos
-#                  dos controles para indicar que o estado do controle mudou
-#                  e que ele precisa ser redesenhado.
 class BotaoAdicionarPeca(ft.UserControl):
     """
     UserControl para o botão "Adicionar Peça".
@@ -58,28 +53,19 @@ class BotaoAdicionarPeca(ft.UserControl):
     def __init__(self, ordem_servico_formulario):
         super().__init__()
         self.ordem_servico_formulario = ordem_servico_formulario
-        self.disabled = True  # Inicializa o botão como desabilitado
 
     def build(self):
-        """Constrói o botão."""
+        """Constrói o botão com lógica de habilitação dinâmica."""
         return ft.ElevatedButton(
             "Adicionar Peça",
             on_click=self.ordem_servico_formulario.adicionar_peca,
-            disabled=self.disabled,
+            disabled=not (
+                self.ordem_servico_formulario.peca_dropdown.value
+                and self.ordem_servico_formulario.preco_unitario_field.value
+                and self.ordem_servico_formulario.quantidade_field.value
+            ),
         )
 
-    def atualizar_estado(self):
-        """
-        Atualiza o estado do botão (habilitado/desabilitado)
-        com base nos campos preenchidos.
-        """
-        campos_validos = (
-            self.ordem_servico_formulario.peca_dropdown.value
-            and self.ordem_servico_formulario.preco_unitario_field.value is not None
-            and self.ordem_servico_formulario.quantidade_field.value is not None
-        )
-        self.disabled = not campos_validos
-        self.update()
 
 class OrdemServicoFormulario(ft.UserControl):
     """Formulário para criar uma nova ordem de serviço."""
@@ -91,7 +77,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.pecas = pecas
         self.clientes = clientes
         self.adicionar_peca_button = BotaoAdicionarPeca(self)
-        
+
         # Inicializa os componentes da interface
         self.cliente_dropdown = ft.Dropdown(width=200)
         self.carro_dropdown = ft.Dropdown(width=200)
@@ -99,21 +85,21 @@ class OrdemServicoFormulario(ft.UserControl):
             width=200,
             options=[ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas],
             # Conecta on_change ao atualizar_botao_adicionar_peca
-            on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
+            on_change=self.atualizar_interface,  # Conecta ao evento
         )
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário",
             width=200,
-            value="0.00",# Define como string inicialmente
+            value="0.00",  # Define como string inicialmente
             # Conecta on_change ao atualizar_botao_adicionar_peca
-            on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
+            on_change=self.atualizar_interface,  # Conecta ao evento
         )
         self.quantidade_field = ft.TextField(
             label="Quantidade",
             width=100,
-            value="1",# Define como string inicialmente
+            value="1",  # Define como string inicialmente
             # Conecta on_change ao atualizar_botao_adicionar_peca
-            on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
+            on_change=self.atualizar_interface,  # Conecta ao evento
         )
 
         self.pecas_list_view = ft.ListView(expand=True, height=200)
@@ -121,11 +107,11 @@ class OrdemServicoFormulario(ft.UserControl):
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
         self.mao_de_obra_text = ft.Text("Mão de Obra: R$ 0.00")
         self.maodeobra = 0.0
-        self.total_com_mao_de_obra_text = ft.Text(
-            "Total com mão de obra: R$ 0.00"
-        )
+        self.total_com_mao_de_obra_text = ft.Text("Total com mão de obra: R$ 0.00")
         self.pagamento_avista_text = ft.Text("Pagamento à Vista: R$ 0.00")
-        self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores") #Implementar Hiperlink WhatsApp para que seja solcitado orcamento atraves do WhatsApp
+        self.pagamento_cartao_text = ft.Text(
+            "Pagamento No Cartão: Consultar Valores"
+        )  # Implementar Hiperlink WhatsApp para que seja solcitado orcamento atraves do WhatsApp
         self.preco_mao_de_obra_field = ft.TextField(
             label="Mão de Obra (R$)", width=100, value="0.00"
         )
@@ -137,9 +123,9 @@ class OrdemServicoFormulario(ft.UserControl):
         # Carrega dados iniciais do formulário
         self.carregar_dados()
         self.carregar_clientes_no_dropdown()
-        
-        #Cria o AlertDialog aqui no construtor
-        #self.dlg_ordem_servico = self.criar_modal_ordem_servico()
+
+        # Cria o AlertDialog aqui no construtor
+        # self.dlg_ordem_servico = self.criar_modal_ordem_servico()
 
     def abrir_modal_ordem_servico(self, e):
         """Abre o modal da ordem de serviço."""
@@ -155,7 +141,7 @@ class OrdemServicoFormulario(ft.UserControl):
         Este método é chamado sempre que um dos campos
         relevantes do formulário é alterado.
         """
-        self.adicionar_peca_button.atualizar_estado()
+        #self.adicionar_peca_button.atualizar_estado()
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
@@ -236,7 +222,9 @@ class OrdemServicoFormulario(ft.UserControl):
 
         self.page.dialog = dlg
         dlg.open = True
+
         self.page.update()
+        return dlg
 
     def atualizar_mao_de_obra(self, e):
         """Atualiza o valor da mão de obra e recalcula o total da OS."""
@@ -782,4 +770,14 @@ class OrdemServicoFormulario(ft.UserControl):
         self.calcular_valor_total()
         self.link_whatsapp = None  # Limpa o link após o envio
         self.adicionar_peca_button.atualizar_estado()
+        self.page.update()
+
+    def atualizar_interface(self, e):
+        """
+        Atualiza a interface do usuário após mudanças no formulário.
+
+        Args:
+            e: O evento que acionou a atualização.
+        """
+        self.calcular_valor_total()  # Recalcula totais quando algo muda
         self.page.update()
