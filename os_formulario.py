@@ -91,24 +91,28 @@ class OrdemServicoFormulario(ft.UserControl):
         self.pecas = pecas
         self.clientes = clientes
         self.adicionar_peca_button = BotaoAdicionarPeca(self)
+        
         # Inicializa os componentes da interface
-        self.cliente_dropdown = ft.Dropdown(width=100)
-        self.carro_dropdown = ft.Dropdown(width=100)
+        self.cliente_dropdown = ft.Dropdown(width=200)
+        self.carro_dropdown = ft.Dropdown(width=200)
         self.peca_dropdown = ft.Dropdown(
-            width=100,
+            width=200,
             options=[ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas],
+            # Conecta on_change ao atualizar_botao_adicionar_peca
             on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
         )
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário",
-            width=100,
-            value=0.00,
+            width=200,
+            value="0.00",# Define como string inicialmente
+            # Conecta on_change ao atualizar_botao_adicionar_peca
             on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
         )
         self.quantidade_field = ft.TextField(
             label="Quantidade",
             width=100,
-            value=0.0,
+            value="1",# Define como string inicialmente
+            # Conecta on_change ao atualizar_botao_adicionar_peca
             on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
         )
 
@@ -117,9 +121,11 @@ class OrdemServicoFormulario(ft.UserControl):
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
         self.mao_de_obra_text = ft.Text("Mão de Obra: R$ 0.00")
         self.maodeobra = 0.0
-        self.total_com_mao_de_obra_text = ft.Text("Total com mão de obra: R$ 0.00")
+        self.total_com_mao_de_obra_text = ft.Text(
+            "Total com mão de obra: R$ 0.00"
+        )
         self.pagamento_avista_text = ft.Text("Pagamento à Vista: R$ 0.00")
-        self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores")
+        self.pagamento_cartao_text = ft.Text("Pagamento No Cartão: Consultar Valores") #Implementar Hiperlink WhatsApp para que seja solcitado orcamento atraves do WhatsApp
         self.preco_mao_de_obra_field = ft.TextField(
             label="Mão de Obra (R$)", width=100, value="0.00"
         )
@@ -131,10 +137,16 @@ class OrdemServicoFormulario(ft.UserControl):
         # Carrega dados iniciais do formulário
         self.carregar_dados()
         self.carregar_clientes_no_dropdown()
+        
+        #Cria o AlertDialog aqui no construtor
+        #self.dlg_ordem_servico = self.criar_modal_ordem_servico()
 
     def abrir_modal_ordem_servico(self, e):
         """Abre o modal da ordem de serviço."""
+        self.dlg_ordem_servico = self.criar_modal_ordem_servico()
+        self.page.dialog = self.dlg_ordem_servico
         print("Abrindo modal...")
+        self.dlg_ordem_servico.open = True
         self.criar_modal_ordem_servico()
 
     def atualizar_botao_adicionar_peca(self, e):
@@ -213,7 +225,7 @@ class OrdemServicoFormulario(ft.UserControl):
                     spacing=50,
                     alignment=ft.MainAxisAlignment.START,
                 ),
-                width=900,
+                width=950,
                 expand=1,
             ),
             actions=[
