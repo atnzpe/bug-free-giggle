@@ -10,7 +10,6 @@ from flet import (
     Text,
     TextField,
     UserControl,
-    colors,
     ListView,
     Dropdown,
     dropdown,
@@ -25,7 +24,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import TableStyle
 from reportlab.platypus import Table
 from reportlab.lib import colors
-from reportlab.lib import colors as colors_pdf
 
 from models import Oficina, Peca, Carro, Cliente, Usuario
 from database import (
@@ -41,6 +39,37 @@ from database import (
 )
 
 
+# ----> Correção: 'StatefulWidget' não existe no Flet.
+#                  No Flet, usamos a função 'update()' dentro dos métodos
+#                  dos controles para indicar que o estado do controle mudou
+#                  e que ele precisa ser redesenhado.
+class BotaoAdicionarPeca(ft.UserControl):
+    """
+    UserControl para o botão "Adicionar Peça",
+    que controla dinamicamente seu estado (habilitado/desabilitado).
+    """
+
+    def __init__(self, ordem_servico_formulario):
+        super().__init__()
+        self.ordem_servico_formulario = ordem_servico_formulario
+
+    def build(self):
+        """
+        Constrói o botão e define a lógica para habilitá-lo/desabilitá-lo.
+        """
+        # O botão agora verifica se os campos necessários estão preenchidos
+        # antes de se habilitar.
+        return ft.ElevatedButton(
+            "Adicionar Peça",
+            on_click=self.ordem_servico_formulario.adicionar_peca,
+            disabled=not (
+                self.ordem_servico_formulario.peca_dropdown.value
+                and self.ordem_servico_formulario.preco_unitario_field.value
+                and self.ordem_servico_formulario.quantidade_field.value
+            ),
+        )
+
+
 class OrdemServicoFormulario(ft.UserControl):
     """Formulário para criar uma nova ordem de serviço."""
 
@@ -50,7 +79,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.oficina_app = oficina_app
         self.pecas = pecas
         self.clientes = clientes
-
+        self.adicionar_peca_button = BotaoAdicionarPeca(self)
         # Inicializa os componentes da interface
         self.cliente_dropdown = ft.Dropdown(width=100)
         self.carro_dropdown = ft.Dropdown(width=100)
@@ -59,9 +88,7 @@ class OrdemServicoFormulario(ft.UserControl):
             label="Preço Unitário", width=100, value="0.00"
         )
         self.quantidade_field = ft.TextField(label="Quantidade", width=100, value="")
-        self.adicionar_peca_button = ft.ElevatedButton(
-            "Adicionar Peça", on_click=self.adicionar_peca
-        )
+        
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00", visible=True)
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
@@ -163,7 +190,7 @@ class OrdemServicoFormulario(ft.UserControl):
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
-        #self.maodeobra = float(self.preco_mao_de_obra_field.value)
+        
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
@@ -182,6 +209,7 @@ class OrdemServicoFormulario(ft.UserControl):
             self.preco_mao_de_obra_field.value = "0.00"
             self.preco_unitario_field.value = "0.00"
             self.quantidade_field.value = ""
+            self.adicionar_peca_button.update()
             self.page.update()
         except ValueError:
             print("Erro: Valor inválido para a mão de obra.")
@@ -215,7 +243,7 @@ class OrdemServicoFormulario(ft.UserControl):
             self.page.show_snack_bar(ft.snack_bar)
             return
 
-        cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
+        cliente_nome = self.cliente_dropdown.value.split("")[0]
         carro_descricao = self.carro_dropdown.value
 
         # Ler o valor da mão de obra AQUI
@@ -231,11 +259,13 @@ class OrdemServicoFormulario(ft.UserControl):
                 ft.Markdown(f"**Cliente:** {cliente_nome}"),
                 ft.Markdown(f"**Carro:** {carro_descricao}"),
                 ft.Markdown(
-                    f"**Data de Criação:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    f"**Data de Criação:** {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}"
                 ),
                 ft.Divider(),
                 ft.Markdown(f"**Itens:**"),
-                ft.Markdown(f"{'Material':<20} {'Valor Unitário':<15} {'Quantidade':<10} {'Valor Total':>10}"),
+                ft.Markdown(
+                    f"{'Material':<20} {'Valor Unitário':<15} {'Quantidade':<10} {'Valor Total':>10}"
+                ),
                 ft.Divider(),
                 *[
                     ft.Row(
@@ -277,7 +307,7 @@ class OrdemServicoFormulario(ft.UserControl):
         """Formata os dados da OS no formato desejado."""
         cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
-        data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+        data_hora_criacao = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
         mao_de_obra = self.maodeobra
 
         # Cabeçalho
@@ -321,6 +351,9 @@ class OrdemServicoFormulario(ft.UserControl):
         del self.pecas_selecionadas[index]
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
+        # ---->  Atualiza o componente 'BotaoAdicionarPeca' 
+        #        após remover uma peça.
+        self.adicionar_peca_button.update()
         self.page.update()
 
     def carregar_clientes_no_dropdown(self):
@@ -395,6 +428,7 @@ class OrdemServicoFormulario(ft.UserControl):
         )
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
+        self.adicionar_peca_button.update()
         self.peca_dropdown.value = None
         self.preco_unitario_field.value = "0.00"
         self.quantidade_field.value = ""
@@ -595,19 +629,21 @@ class OrdemServicoFormulario(ft.UserControl):
         try:
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
             placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
-            data_hora_criacao = datetime.now().strftime("%Y%m%d_%H%M%S")
+            data_hora_criacao = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
             # Formatar os itens da OS para a tabela
-            dados_tabela = [["Material", "Valor Unitário", "Quantidade", "Valor Total"]]  # Cabeçalho
+            dados_tabela = [
+                ["Material", "Valor Unitário", "Quantidade", "Valor Total"]
+            ]  # Cabeçalho
             for peca in self.pecas_selecionadas:
                 dados_tabela.append(
-                [
-                    peca['nome'], 
-                    f"R$ {peca['preco_unitario']:.2f}", 
-                    peca['quantidade'], 
-                    f"R$ {peca['valor_total']:.2f}"
-                ]
-            )
+                    [
+                        peca["nome"],
+                        f"R$ {peca['preco_unitario']:.2f}",
+                        peca["quantidade"],
+                        f"R$ {peca['valor_total']:.2f}",
+                    ]
+                )
 
             # Criar a tabela com ReportLab
             tabela = Table(dados_tabela)
@@ -704,4 +740,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
         self.link_whatsapp = None  # Limpa o link após o envio
+        # ---->  Atualiza o componente 'BotaoAdicionarPeca' 
+        #        após limpar os campos.
+        self.adicionar_peca_button.update()
         self.page.update()
