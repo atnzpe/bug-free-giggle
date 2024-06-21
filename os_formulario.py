@@ -45,30 +45,41 @@ from database import (
 #                  e que ele precisa ser redesenhado.
 class BotaoAdicionarPeca(ft.UserControl):
     """
-    UserControl para o botão "Adicionar Peça",
-    que controla dinamicamente seu estado (habilitado/desabilitado).
+    UserControl para o botão "Adicionar Peça".
+    Controla dinamicamente seu estado (habilitado/desabilitado).
+
+    # Comentário para QA:
+    # - Verificar se o botão é habilitado somente quando todos os campos
+    #   ("Peça", "Preço Unitário" e "Quantidade") estiverem preenchidos.
+    # - Verificar se o botão é desabilitado quando qualquer um dos campos
+    #   for limpo ou ficar vazio.
     """
 
     def __init__(self, ordem_servico_formulario):
         super().__init__()
         self.ordem_servico_formulario = ordem_servico_formulario
+        self.disabled = True  # Inicializa o botão como desabilitado
 
     def build(self):
-        """
-        Constrói o botão e define a lógica para habilitá-lo/desabilitá-lo.
-        """
-        # O botão agora verifica se os campos necessários estão preenchidos
-        # antes de se habilitar.
+        """Constrói o botão."""
         return ft.ElevatedButton(
             "Adicionar Peça",
             on_click=self.ordem_servico_formulario.adicionar_peca,
-            disabled=not (
-                self.ordem_servico_formulario.peca_dropdown.value
-                and self.ordem_servico_formulario.preco_unitario_field.value
-                and self.ordem_servico_formulario.quantidade_field.value
-            ),
+            disabled=self.disabled,
         )
 
+    def atualizar_estado(self):
+        """
+        Atualiza o estado do botão (habilitado/desabilitado)
+        com base nos campos preenchidos.
+        """
+        campos_validos = (
+            self.ordem_servico_formulario.peca_dropdown.value
+            and self.ordem_servico_formulario.preco_unitario_field.value is not None
+            and self.ordem_servico_formulario.quantidade_field.value is not None
+        )
+        self.disabled = not campos_validos
+        self.update()
 
 class OrdemServicoFormulario(ft.UserControl):
     """Formulário para criar uma nova ordem de serviço."""
@@ -83,12 +94,24 @@ class OrdemServicoFormulario(ft.UserControl):
         # Inicializa os componentes da interface
         self.cliente_dropdown = ft.Dropdown(width=100)
         self.carro_dropdown = ft.Dropdown(width=100)
-        self.peca_dropdown = ft.Dropdown(width=100)
-        self.preco_unitario_field = ft.TextField(
-            label="Preço Unitário", width=100, value="0.00"
+        self.peca_dropdown = ft.Dropdown(
+            width=100,
+            options=[ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas],
+            on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
         )
-        self.quantidade_field = ft.TextField(label="Quantidade", width=100, value="")
-        
+        self.preco_unitario_field = ft.TextField(
+            label="Preço Unitário",
+            width=100,
+            value=0.00,
+            on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
+        )
+        self.quantidade_field = ft.TextField(
+            label="Quantidade",
+            width=100,
+            value=0.0,
+            on_change=self.atualizar_botao_adicionar_peca,  # Conecta ao evento
+        )
+
         self.pecas_list_view = ft.ListView(expand=True, height=200)
         self.valor_total_text = ft.Text("Valor Total: R$ 0.00", visible=True)
         self.total_pecas_text = ft.Text("Total de Peças: R$ 0.00")
@@ -113,6 +136,14 @@ class OrdemServicoFormulario(ft.UserControl):
         """Abre o modal da ordem de serviço."""
         print("Abrindo modal...")
         self.criar_modal_ordem_servico()
+
+    def atualizar_botao_adicionar_peca(self, e):
+        """
+        Atualiza o estado do botão "Adicionar Peça".
+        Este método é chamado sempre que um dos campos
+        relevantes do formulário é alterado.
+        """
+        self.adicionar_peca_button.atualizar_estado()
 
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
@@ -190,7 +221,7 @@ class OrdemServicoFormulario(ft.UserControl):
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
-        
+
         self.page.dialog = dlg
         dlg.open = True
         self.page.update()
@@ -207,9 +238,7 @@ class OrdemServicoFormulario(ft.UserControl):
             ft.snack_bar = ft.SnackBar(ft.Text("Mão de obra atualizada com sucesso!"))
             self.page.show_snack_bar(ft.snack_bar)
             self.preco_mao_de_obra_field.value = "0.00"
-            self.preco_unitario_field.value = "0.00"
-            self.quantidade_field.value = ""
-            self.adicionar_peca_button.update()
+
             self.page.update()
         except ValueError:
             print("Erro: Valor inválido para a mão de obra.")
@@ -243,7 +272,7 @@ class OrdemServicoFormulario(ft.UserControl):
             self.page.show_snack_bar(ft.snack_bar)
             return
 
-        cliente_nome = self.cliente_dropdown.value.split("")[0]
+        cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
         carro_descricao = self.carro_dropdown.value
 
         # Ler o valor da mão de obra AQUI
@@ -293,8 +322,8 @@ class OrdemServicoFormulario(ft.UserControl):
             title=ft.Text("Pré-visualização da OS"),
             content=conteudo_preview,
             actions=[
-                ft.TextButton("Fechar", on_click=self.fechar_modal_preview),
-                ft.TextButton("Enviar OS", on_click=self.criar_ordem_servico),
+                ft.ElevatedButton("Fechar", on_click=self.fechar_modal_preview),
+                ft.ElevatedButton("Enviar OS", on_click=self.criar_ordem_servico),
             ],
         )
         print(f"Linha 267 {mao_de_obra}")
@@ -351,9 +380,9 @@ class OrdemServicoFormulario(ft.UserControl):
         del self.pecas_selecionadas[index]
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
-        # ---->  Atualiza o componente 'BotaoAdicionarPeca' 
+        # ---->  Atualiza o componente 'BotaoAdicionarPeca'
         #        após remover uma peça.
-        self.adicionar_peca_button.update()
+        self.adicionar_peca_button.atualizar_estado()
         self.page.update()
 
     def carregar_clientes_no_dropdown(self):
@@ -390,7 +419,7 @@ class OrdemServicoFormulario(ft.UserControl):
                 self.page.update()
         except Exception as e:
             print(f"Erro ao carregar carros no dropdown: {e}")
-            # TODO: Exibir mensagem de erro para o usuário
+            # Exibir mensagem de erro para o usuário
 
     def carregar_dados(self):
         """Carrega os dados iniciais do formulário."""
@@ -428,11 +457,11 @@ class OrdemServicoFormulario(ft.UserControl):
         )
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
-        self.adicionar_peca_button.update()
-        self.peca_dropdown.value = None
-        self.preco_unitario_field.value = "0.00"
-        self.quantidade_field.value = ""
 
+        self.peca_dropdown.value = None
+        self.preco_unitario_field.value = 0.0
+        self.quantidade_field.value = 0.0
+        self.adicionar_peca_button.atualizar_estado()
         self.page.update()
 
     def formatar_moeda(self, valor):
@@ -629,7 +658,7 @@ class OrdemServicoFormulario(ft.UserControl):
         try:
             cliente_nome = self.cliente_dropdown.value.split(" (ID: ")[0]
             placa_carro = self.carro_dropdown.value.split("Placa: ")[1][:-1]
-            data_hora_criacao = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+            data_hora_criacao = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
 
             # Formatar os itens da OS para a tabela
             dados_tabela = [
@@ -733,14 +762,12 @@ class OrdemServicoFormulario(ft.UserControl):
         self.cliente_dropdown.value = None
         self.carro_dropdown.value = None
         self.peca_dropdown.value = None
-        self.preco_unitario_field.value = "0"
-        self.quantidade_field.value = "0"
+        self.preco_unitario_field.value = 0.0
+        self.quantidade_field.value = 0.0
         self.preco_mao_de_obra_field.value = "0"
         self.pecas_selecionadas = []
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
         self.link_whatsapp = None  # Limpa o link após o envio
-        # ---->  Atualiza o componente 'BotaoAdicionarPeca' 
-        #        após limpar os campos.
-        self.adicionar_peca_button.update()
+        self.adicionar_peca_button.atualizar_estado()
         self.page.update()
