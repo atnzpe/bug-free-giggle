@@ -1,4 +1,5 @@
-('C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\build\\main\\PYZ-00.pyz',
+('C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+ 'pasta\\bug-free-giggle\\build\\main\\PYZ-00.pyz',
  [('IPython',
    'C:\\Users\\gleyson\\AppData\\Roaming\\Python\\Python311\\site-packages\\IPython\\__init__.py',
    'PYMODULE'),
@@ -1170,7 +1171,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\curses\\has_key.py',
    'PYMODULE'),
   ('database',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\database.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\database.py',
    'PYMODULE'),
   ('dataclasses',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\dataclasses.py',
@@ -1689,7 +1691,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\dotenv\\variables.py',
    'PYMODULE'),
   ('editar_cliente',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\editar_cliente.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\editar_cliente.py',
    'PYMODULE'),
   ('email',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\email\\__init__.py',
@@ -3655,7 +3658,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\mimetypes.py',
    'PYMODULE'),
   ('models',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\models.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\models.py',
    'PYMODULE'),
   ('multipart',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\multipart\\__init__.py',
@@ -3865,7 +3869,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\oauthlib\\uri_validate.py',
    'PYMODULE'),
   ('oficina_app',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\oficina_app.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\oficina_app.py',
    'PYMODULE'),
   ('opcode',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\opcode.py',
@@ -3877,7 +3882,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\orjson\\__init__.py',
    'PYMODULE'),
   ('os_formulario',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\os_formulario.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\os_formulario.py',
    'PYMODULE'),
   ('packaging',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\packaging\\__init__.py',
@@ -5792,7 +5798,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\repath.py',
    'PYMODULE'),
   ('report',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\report.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\report.py',
    'PYMODULE'),
   ('reportlab',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\reportlab\\__init__.py',
@@ -6644,7 +6651,8 @@
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\urllib\\response.py',
    'PYMODULE'),
   ('utils',
-   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\oficina_guarulhos\\utils.py',
+   'C:\\Users\\gleyson\\Desktop\\Gleyson\\workspace\\Nova '
+   'pasta\\bug-free-giggle\\utils.py',
    'PYMODULE'),
   ('uuid',
    'C:\\Users\\gleyson\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\uuid.py',

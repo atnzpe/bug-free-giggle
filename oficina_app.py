@@ -78,6 +78,8 @@ class OficinaApp:
         self.clientes: List[Any] = []  # Inicialize com lista vazia
         # Carregue os dados primeiro
         try:
+            self.carregar_dados()
+            self.carregar_clientes_no_dropdown()
             self.pecas, self.clientes = self.carregar_dados()
         except Exception as e:
             print(f"Erro ao carregar dados: {e}")
@@ -95,7 +97,8 @@ class OficinaApp:
         criar_usuario_admin(nome_banco_de_dados)
         
         
-
+        self.carregar_dados()
+        self.carregar_clientes_no_dropdown()
         #self.build_ui()
         
 
@@ -443,7 +446,7 @@ class OficinaApp:
             content=ft.Column(
                 [
                     ft.TextField(label="Nome", ref=ft.Ref[str]()),
-                    ft.TextField(label="Telefone", ref=ft.Ref[str]()),
+                    ft.TextField(label="Telefone", value="55 + ddd + numero cliente", ref=ft.Ref[str]()),
                     ft.TextField(label="Endereço", ref=ft.Ref[str]()),
                     ft.TextField(label="Email", ref=ft.Ref[str]()),
                 ]
