@@ -139,6 +139,8 @@ class OrdemServicoFormulario(ft.UserControl):
         self.dlg_ordem_servico = self.criar_modal_ordem_servico()
         self.page.dialog = self.dlg_ordem_servico
         print("Abrindo modal...")
+        self.carregar_dados()
+        self.carregar_clientes_no_dropdown()
         self.dlg_ordem_servico.open = True
         self.criar_modal_ordem_servico()
 
@@ -150,6 +152,8 @@ class OrdemServicoFormulario(ft.UserControl):
         """
         # self.adicionar_peca_button.atualizar_estado()
         self.calcular_valor_total()  # Recalcula totais quando algo muda
+        self.carregar_dados()
+        self.carregar_clientes_no_dropdown()
         self.page.update()
 
     def criar_modal_ordem_servico(self):
@@ -193,6 +197,7 @@ class OrdemServicoFormulario(ft.UserControl):
                                 self.mao_de_obra_text,
                                 self.total_com_mao_de_obra_text,
                                 ft.Divider(),
+                                self.botao_add,
                                 ft.Row(
                                     [
                                         ft.Text("Mão de Obra (R$):", width=120),
