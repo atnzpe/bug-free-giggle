@@ -85,21 +85,21 @@ class OrdemServicoFormulario(ft.UserControl):
             width=200,
             options=[ft.dropdown.Option(f"{peca[1]}") for peca in self.pecas],
             # Conecta on_change ao atualizar_botao_adicionar_peca
-            on_change=self.atualizar_interface,  # Conecta ao evento
+            on_change=lambda e: self.atualizar_botao_adicionar_peca(e),  # Conecta ao evento
         )
         self.preco_unitario_field = ft.TextField(
             label="Preço Unitário",
             width=200,
             value="0.00",  # Define como string inicialmente
             # Conecta on_change ao atualizar_botao_adicionar_peca
-            on_change=self.atualizar_interface,  # Conecta ao evento
+            on_change=lambda e: self.atualizar_botao_adicionar_peca(e),  # Conecta ao evento
         )
         self.quantidade_field = ft.TextField(
             label="Quantidade",
             width=100,
             value="1",  # Define como string inicialmente
             # Conecta on_change ao atualizar_botao_adicionar_peca
-            on_change=self.atualizar_interface,  # Conecta ao evento
+            on_change=lambda e: self.atualizar_botao_adicionar_peca(e),  # Conecta ao evento
         )
 
         self.pecas_list_view = ft.ListView(expand=True, height=200)
@@ -142,7 +142,9 @@ class OrdemServicoFormulario(ft.UserControl):
         relevantes do formulário é alterado.
         """
         #self.adicionar_peca_button.atualizar_estado()
-
+        self.calcular_valor_total()  # Recalcula totais quando algo muda
+        self.page.update()
+        
     def criar_modal_ordem_servico(self):
         """Cria o modal (janela pop-up) para a ordem de serviço."""
         print("Criando o modal...")
@@ -167,11 +169,18 @@ class OrdemServicoFormulario(ft.UserControl):
                                 self.preco_unitario_field,
                                 ft.Text("Quantidade:", width=100),
                                 self.quantidade_field,
-                                self.adicionar_peca_button,
+                                ft.TextButton("Adiconar", on_click=self.adicionar_peca),
                             ],
                             spacing=10,
                             alignment=ft.MainAxisAlignment.START,
+                            
                         ),
+                        ft.Row([                            
+                                
+                                ft.TextButton("AMOR", on_click=self.adicionar_peca),
+                            
+                        ]),
+                        
                         ft.VerticalDivider(
                             width=2,
                             color=ft.colors.GREY_400,
@@ -216,6 +225,7 @@ class OrdemServicoFormulario(ft.UserControl):
             ),
             actions=[
                 ft.TextButton("Cancelar", on_click=self.fechar_modal_os),
+                ft.TextButton("Adicona", on_click=self.adicionar_peca)
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
@@ -382,7 +392,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.calcular_valor_total()
         # ---->  Atualiza o componente 'BotaoAdicionarPeca'
         #        após remover uma peça.
-        self.adicionar_peca_button.atualizar_estado()
+        
         self.page.update()
 
     def carregar_clientes_no_dropdown(self):
@@ -461,7 +471,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.peca_dropdown.value = None
         self.preco_unitario_field.value = 0.0
         self.quantidade_field.value = 0.0
-        self.adicionar_peca_button.atualizar_estado()
+        
         self.page.update()
 
     def formatar_moeda(self, valor):
@@ -769,7 +779,7 @@ class OrdemServicoFormulario(ft.UserControl):
         self.atualizar_lista_pecas()
         self.calcular_valor_total()
         self.link_whatsapp = None  # Limpa o link após o envio
-        self.adicionar_peca_button.atualizar_estado()
+        
         self.page.update()
 
     def atualizar_interface(self, e):
