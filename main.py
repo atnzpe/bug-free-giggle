@@ -19,7 +19,7 @@ def main(page: ft.Page):
     page.pubsub.subscribe(app._on_message)
 
     # Criar as pastas necessárias
-    criar_pastas("c:/big/")
+    criar_pastas("./big/")
     
     # Inicie a thread para processar a fila
     thread_db = threading.Thread(target=processar_fila_db, args=(page,), daemon=True)
