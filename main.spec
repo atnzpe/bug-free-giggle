@@ -35,6 +35,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\Users\\gleyson\\AppData\\Local\\Temp\\81cae906-1f51-44aa-be58-a1b615ed29e3',
-    icon=['heart.png'],
+    version='C:\\Users\\gleyson\\AppData\\Local\\Temp\\153116c2-64fb-40c0-8a2c-ac055cf15849',
+    icon=['ico.png'],
 )

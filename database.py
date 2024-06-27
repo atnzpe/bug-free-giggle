@@ -5,7 +5,7 @@ from datetime import datetime
 import queue
 
 # BANCO DE DADOS E FILA
-nome_banco_de_dados = "./big/data/oficina_guarulhos.db"
+nome_banco_de_dados = "C:/big/data/oficina_guarulhos.db"
 banco_de_dados = nome_banco_de_dados
 #conexao = criar_conexao_banco_de_dados(nome_banco_de_dados)
 # Fila para operações do banco de dados (se necessário)
